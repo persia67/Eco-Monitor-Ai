@@ -72,14 +72,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {exhausts.map(exhaust => {
           const overallStatus = getExhaustOverallStatus(exhaust.data);
           const diagnostics = getDetailedDiagnostic(exhaust);
           
           return (
-            <div key={exhaust.id} className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50 hover:border-slate-600 transition-all">
+            <div key={exhaust.id} className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50 hover:border-slate-600 transition-all min-w-0">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-bold mb-1 text-white">{exhaust.name}</h3>
@@ -91,9 +91,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
                 </div>
               </div>
 
-              <div className="mb-6 h-[220px]">
+              <div className="mb-6 h-[220px] w-full" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={getRadarData(exhaust.data)}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getRadarData(exhaust.data)}>
                     <PolarGrid stroke="#475569" strokeDasharray="3 3" />
                     <PolarAngleAxis dataKey="pollutant" tick={{fill: '#94a3b8', fontSize: 12}} />
                     <PolarRadiusAxis angle={90} domain={[0, 150]} tick={{fill: '#64748b'}} />
@@ -171,12 +171,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
         })}
       </div>
 
-      <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50">
+      <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50 w-full min-w-0">
         <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
           <Activity className="text-green-500" />
           مقایسه جامع آلاینده‌ها با استانداردهای ISO 14001
         </h3>
-        <div className="h-[400px]">
+        <div className="h-[400px] w-full" dir="ltr">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={getComparisonData()} barSize={20}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />

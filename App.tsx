@@ -27,6 +27,18 @@ const App: React.FC = () => {
     setActiveTab('dashboard');
   };
 
+  const handleAddExhaust = (name: string, location: string) => {
+    const newId = exhausts.length > 0 ? Math.max(...exhausts.map(e => e.id)) + 1 : 1;
+    const newExhaust: Exhaust = {
+      id: newId,
+      name,
+      location,
+      data: { CO: 0, CO2: 0, SO2: 0, NOx: 0, PM: 0 },
+      lastCheck: 'ثبت نشده'
+    };
+    setExhausts(prev => [...prev, newExhaust]);
+  };
+
   const handleAnalyze = async (exhaust: Exhaust) => {
     setIsAnalyzing(true);
     // Switch to analysis tab immediately to show loading state context if desired, 
@@ -48,7 +60,7 @@ const App: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'داشبورد وضعیت', icon: Activity },
-    { id: 'data-entry', label: 'ورود داده‌ها', icon: FileText },
+    { id: 'data-entry', label: 'مدیریت و ورود داده‌ها', icon: FileText },
     { id: 'analysis', label: 'تحلیل هوشمند AI', icon: TrendingUp }
   ];
 
@@ -115,6 +127,7 @@ const App: React.FC = () => {
             <DataEntry 
               exhausts={exhausts} 
               onAddData={handleAddData} 
+              onAddExhaust={handleAddExhaust}
             />
           )}
 
