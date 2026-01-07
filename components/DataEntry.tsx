@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { FileText, Save, RefreshCcw, PlusCircle, Settings, Factory } from 'lucide-react';
+import { FileText, Save, RefreshCcw, PlusCircle, Settings, Factory, Calendar } from 'lucide-react';
 import { Exhaust, PollutantData } from '../types';
 import { STANDARDS } from '../constants';
 
 interface DataEntryProps {
   exhausts: Exhaust[];
-  onAddData: (exhaustId: string, data: PollutantData) => void;
+  onAddData: (exhaustId: string, data: PollutantData, period: string) => void;
   onAddExhaust: (name: string, location: string) => void;
 }
 
@@ -14,10 +14,18 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
   
   // State for Data Entry
   const [exhaustId, setExhaustId] = useState('');
+  const [period, setPeriod] = useState('زمستان ۱۴۰۴');
   const [formData, setFormData] = useState<Partial<PollutantData>>({});
 
   // State for New Exhaust
   const [newExhaust, setNewExhaust] = useState({ name: '', location: '' });
+
+  const periods = [
+    'زمستان ۱۴۰۴',
+    'پاییز ۱۴۰۴',
+    'تابستان ۱۴۰۴',
+    'بهار ۱۴۰۴'
+  ];
 
   const handleSubmitData = () => {
     if (!exhaustId) return;
@@ -31,9 +39,10 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
       O2: Number(formData.O2) || 0,
     };
 
-    onAddData(exhaustId, completeData);
+    onAddData(exhaustId, completeData, period);
     setExhaustId('');
     setFormData({});
+    // Keep the period selected for easier batch entry
   };
 
   const handleCreateExhaust = () => {
@@ -81,12 +90,12 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">ورود مقادیر آلاینده‌ها</h2>
-              <p className="text-slate-400 mt-1">انتخاب اگزوز و ثبت مقادیر اندازه‌گیری شده</p>
+              <p className="text-slate-400 mt-1">انتخاب اگزوز، فصل پایش و ثبت مقادیر اندازه‌گیری شده</p>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="md:col-span-2">
+            <div className="md:col-span-1">
               <label className="block mb-2 text-sm font-semibold text-slate-300">منبع انتشار (اگزوز)</label>
               <select
                 value={exhaustId}
@@ -96,6 +105,22 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
                 <option value="">انتخاب کنید...</option>
                 {exhausts.map(exhaust => (
                   <option key={exhaust.id} value={exhaust.id}>{exhaust.name} - {exhaust.location}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="md:col-span-1">
+              <label className="block mb-2 text-sm font-semibold text-slate-300 flex items-center gap-2">
+                <Calendar size={16} />
+                دوره پایش (فصل)
+              </label>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="w-full bg-slate-900/50 border border-slate-600 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all hover:bg-slate-900"
+              >
+                {periods.map(p => (
+                  <option key={p} value={p}>{p}</option>
                 ))}
               </select>
             </div>
