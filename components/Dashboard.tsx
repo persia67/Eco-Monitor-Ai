@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
+  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
 } from 'recharts';
 import { AlertCircle, Activity } from 'lucide-react';
@@ -62,16 +62,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
     }));
   };
 
-  const getComparisonData = () => {
-    return Object.keys(STANDARDS).map(pollutant => ({
-      name: STANDARDS[pollutant].name,
-      استاندارد: STANDARDS[pollutant].limit,
-      ...exhausts.reduce((acc: any, exhaust) => {
-        acc[exhaust.name] = exhaust.data[pollutant];
-        return acc;
-      }, {})
-    }));
-  };
+  const comparisonData = Object.keys(STANDARDS).map(pollutant => ({
+    name: STANDARDS[pollutant].name,
+    استاندارد: STANDARDS[pollutant].limit,
+    ...exhausts.reduce((acc: any, exhaust) => {
+      acc[exhaust.name] = exhaust.data[pollutant];
+      return acc;
+    }, {})
+  }));
 
   return (
     <div className="w-full space-y-6 animate-in fade-in duration-500">
@@ -181,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
         </h3>
         <div className="h-[400px] w-full" dir="ltr">
           <ResponsiveContainer width="99%" height="100%">
-            <BarChart data={getComparisonData()} barSize={20}>
+            <BarChart data={comparisonData} barSize={20}>
               <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} vertical={false} />
               <XAxis dataKey="name" tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} dy={10} />
               <YAxis tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} />
@@ -191,9 +189,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
                 labelStyle={{color: '#94a3b8', marginBottom: '0.5rem'}}
               />
               <Legend wrapperStyle={{paddingTop: '20px'}} />
-              <Bar dataKey="استاندارد" fill="#10b981" radius={[4, 4, 0, 0]} name="حد استاندارد" />
+              <Bar dataKey="استاندارد" fill="#94a3b8" radius={[4, 4, 0, 0]} name="حد استاندارد" />
               {exhausts.map((exhaust, idx) => (
-                <Bar key={exhaust.id} dataKey={exhaust.name} fill={[themeColors.primary, '#f59e0b', '#8b5cf6'][idx % 3]} radius={[4, 4, 0, 0]} name={exhaust.name} />
+                <Bar 
+                  key={exhaust.id} 
+                  dataKey={exhaust.name} 
+                  fill={[themeColors.primary, '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'][idx % 5]} 
+                  radius={[4, 4, 0, 0]} 
+                  name={exhaust.name}
+                >
+                  {comparisonData.map((entry: any, index: number) => {
+                    const value = entry[exhaust.name] as number;
+                    const limit = entry['استاندارد'] as number;
+                    const { color } = calculateStatus(value, limit);
+                    return <Cell key={`cell-${index}`} fill={color} />;
+                  })}
+                </Bar>
               ))}
             </BarChart>
           </ResponsiveContainer>
