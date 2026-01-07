@@ -18,7 +18,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
   exhausts, aiAnalysis, isAnalyzing, onAnalyze 
 }) => {
   const [selectedExhaustId, setSelectedExhaustId] = useState<number>(exhausts[0]?.id || 1);
-  const { t, language } = useSettings();
+  const { t, language, themeColors } = useSettings();
   const selectedExhaust = exhausts.find(e => e.id === selectedExhaustId);
 
   if (!selectedExhaust) return <div className="text-center p-10 text-slate-500">{t('details.notFound')}</div>;
@@ -57,7 +57,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
       <div className="lg:col-span-1 space-y-4">
         <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                <Filter size={20} className="text-blue-500 dark:text-blue-400"/>
+                <Filter size={20} style={{ color: themeColors.primary }}/>
                 {t('details.list')}
             </h3>
             <div className="space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-1">
@@ -65,23 +65,22 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
                     <button
                         key={ex.id}
                         onClick={() => setSelectedExhaustId(ex.id)}
-                        className={`w-full text-right p-3 rounded-xl border transition-all flex items-center justify-between group ${
-                            selectedExhaustId === ex.id 
-                            ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-200 dark:border-blue-500/50 text-blue-700 dark:text-white shadow-md' 
-                            : 'bg-gray-50 dark:bg-slate-700/20 border-gray-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700/50 hover:text-slate-800 dark:hover:text-slate-200'
-                        }`}
+                        className={`w-full text-right p-3 rounded-xl border transition-all flex items-center justify-between group`}
+                        style={selectedExhaustId === ex.id 
+                          ? { backgroundColor: `${themeColors.primary}20`, borderColor: `${themeColors.primary}80`, color: 'inherit' }
+                          : {}}
                     >
                         <div className="flex flex-col">
-                            <span className="font-bold text-sm">{ex.name}</span>
-                            <span className="text-xs opacity-70 mt-1 flex items-center gap-1">
+                            <span className={`font-bold text-sm ${selectedExhaustId === ex.id ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'}`}>{ex.name}</span>
+                            <span className="text-xs opacity-70 mt-1 flex items-center gap-1 text-slate-400">
                                 <MapPin size={10} />
                                 {ex.location}
                             </span>
                         </div>
                         {selectedExhaustId === ex.id && (
                           language === 'fa' 
-                            ? <ChevronLeft size={16} className="text-blue-500 dark:text-blue-400" />
-                            : <ChevronLeft size={16} className="text-blue-500 dark:text-blue-400 rotate-180" />
+                            ? <ChevronLeft size={16} style={{ color: themeColors.primary }} />
+                            : <ChevronLeft size={16} style={{ color: themeColors.primary }} className="rotate-180" />
                         )}
                     </button>
                 ))}
@@ -132,7 +131,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
             {/* O2 Chart */}
             <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300">
               <h3 className="text-md font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+                <span className="w-1.5 h-6 rounded-full" style={{backgroundColor: themeColors.primary}}></span>
                 {t('details.oxygen')}
               </h3>
               <div className="h-[250px] w-full" dir="ltr">
@@ -140,8 +139,8 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorO2Details" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor={themeColors.primary} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={themeColors.primary} stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
@@ -149,7 +148,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
                     <YAxis tick={{fill: '#64748b', fontSize: 12}} domain={[0, 25]} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend wrapperStyle={{fontSize: '12px'}} />
-                    <Area type="monotone" dataKey="O2" name="O2 (%)" stroke="#3b82f6" fillOpacity={1} fill="url(#colorO2Details)" strokeWidth={3} />
+                    <Area type="monotone" dataKey="O2" name="O2 (%)" stroke={themeColors.primary} fillOpacity={1} fill="url(#colorO2Details)" strokeWidth={3} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -214,9 +213,10 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
           </div>
 
         {/* AI Analysis Section */}
-        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/50 dark:to-slate-900/50 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-indigo-200 dark:border-indigo-500/30 transition-colors duration-300">
+        <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300" 
+             style={{ borderColor: `${themeColors.primary}30` }}>
              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-indigo-100 dark:bg-indigo-500/20 rounded-xl text-indigo-600 dark:text-indigo-400">
+                <div className="p-3 rounded-xl" style={{ backgroundColor: `${themeColors.primary}20`, color: themeColors.primary }}>
                   <Zap size={24} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('details.aiTitle')} (Gemini AI)</h3>
@@ -224,8 +224,8 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
 
              <div className="mb-6">
                {currentAnalysis ? (
-                 <div className="prose prose-sm max-w-none bg-white/50 dark:bg-slate-900/50 p-6 rounded-xl border border-indigo-100 dark:border-slate-700/50 dark:prose-invert">
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 pb-2 border-b border-indigo-100 dark:border-slate-700">
+                 <div className="prose prose-sm max-w-none bg-white/50 dark:bg-slate-900/50 p-6 rounded-xl border border-gray-100 dark:border-slate-700/50 dark:prose-invert">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 pb-2 border-b border-gray-100 dark:border-slate-700">
                       <Activity size={12} />
                       <span>{t('details.aiGenerated')}: {currentAnalysis.timestamp}</span>
                     </div>
@@ -243,7 +243,8 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
              <button
                 onClick={() => onAnalyze(selectedExhaust, false)}
                 disabled={isAnalyzing}
-                className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white py-3 px-8 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto text-white py-3 px-8 rounded-xl font-bold shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})`, boxShadow: `0 10px 15px -3px ${themeColors.primary}30` }}
               >
                 {isAnalyzing ? (
                   <>

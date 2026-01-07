@@ -1,8 +1,34 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Chat } from "@google/genai";
 import { Exhaust } from "../types";
 import { STANDARDS } from "../constants";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// Chat session management
+let chatSession: Chat | null = null;
+
+export const resetChatSession = () => {
+  chatSession = null;
+};
+
+export const sendChatMessage = async (message: string): Promise<string> => {
+  try {
+    if (!chatSession) {
+      chatSession = ai.chats.create({
+        model: 'gemini-3-pro-preview',
+        config: {
+          systemInstruction: 'You are an intelligent assistant for an industrial environmental monitoring system called EcoMonitor. You help engineers interpret emission data (CO, NOx, SO2, PM, O2), understand ISO 14001 standards, and troubleshoot boiler efficiency issues. Your responses should be technical, concise, and helpful. Use Persian (Farsi) language. Always format your response in a way that is easy to read in a chat window.',
+        },
+      });
+    }
+
+    const response = await chatSession.sendMessage({ message });
+    return response.text || "متاسفانه پاسخی دریافت نشد.";
+  } catch (error) {
+    console.error("Chat Error:", error);
+    return "خطا در ارتباط با سرور هوشمند. لطفاً مجدداً تلاش کنید.";
+  }
+};
 
 export const generateExhaustAnalysis = async (exhaustData: Exhaust): Promise<string> => {
   const dataDescription = Object.entries(exhaustData.data).map(([pollutant, value]) => {

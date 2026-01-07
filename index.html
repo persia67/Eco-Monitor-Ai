@@ -23,6 +23,24 @@
         font-family: 'Vazirmatn', sans-serif;
       }
     </style>
+    <!-- Global Error Handler for White Screen Debugging -->
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML.trim() === "") {
+             document.body.innerHTML = `
+                <div style="padding: 20px; color: #ef4444; background: #1e293b; height: 100vh; font-family: sans-serif; text-align: center;">
+                    <h1>Critical Error (White Screen Protection)</h1>
+                    <p>The application failed to start.</p>
+                    <pre style="background: #0f172a; padding: 10px; border-radius: 8px; text-align: left; overflow: auto;">
+${message}
+Location: ${source}:${lineno}:${colno}
+                    </pre>
+                </div>
+             `;
+        }
+      };
+    </script>
   <script type="importmap">
 {
   "imports": {

@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
-import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info, Moon, Sun, Languages } from 'lucide-react';
+import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info, Moon, Sun, Languages, Palette, MessageSquare } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
 import { MeasurementHistory } from './components/HistoryLog';
 import { ExhaustDetails } from './components/ExhaustDetails';
+import { ChatBot } from './components/ChatBot';
 import { Exhaust, PollutantData, AIAnalysisResult, TabType } from './types';
 import { INITIAL_EXHAUSTS } from './constants';
 import { generateExhaustAnalysis } from './services/geminiService';
-import { useSettings } from './contexts/SettingsContext';
+import { useSettings, AccentColor } from './contexts/SettingsContext';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType | 'chat'>('dashboard');
   const [exhausts, setExhausts] = useState<Exhaust[]>(INITIAL_EXHAUSTS);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
-  const { theme, toggleTheme, language, toggleLanguage, t, dir } = useSettings();
+  const { theme, toggleTheme, language, toggleLanguage, t, dir, accentColor, setAccentColor, themeColors } = useSettings();
   
   const handleAddData = (exhaustId: string, newData: PollutantData, period: string) => {
     setExhausts(prev => prev.map(exhaust => {
@@ -53,6 +54,10 @@ const App: React.FC = () => {
     setExhausts(prev => [...prev, newExhaust]);
   };
 
+  const handleImportData = (data: Exhaust[]) => {
+      setExhausts(data);
+  };
+
   const handleAnalyze = async (exhaust: Exhaust, switchTab: boolean = true) => {
     setIsAnalyzing(true);
     try {
@@ -75,34 +80,63 @@ const App: React.FC = () => {
     { id: 'details', label: t('nav.details'), icon: Info },
     { id: 'data-entry', label: t('nav.dataEntry'), icon: FileText },
     { id: 'analysis', label: t('nav.analysis'), icon: TrendingUp },
+    { id: 'chat', label: t('nav.chat'), icon: MessageSquare },
     { id: 'history', label: t('nav.history'), icon: BarChart3 }
   ];
 
+  const colors: { id: AccentColor; bg: string }[] = [
+    { id: 'blue', bg: 'bg-blue-600' },
+    { id: 'emerald', bg: 'bg-emerald-600' },
+    { id: 'violet', bg: 'bg-violet-600' },
+    { id: 'amber', bg: 'bg-amber-600' },
+    { id: 'rose', bg: 'bg-rose-600' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] dark:from-slate-900 dark:via-slate-900 dark:to-black text-slate-900 dark:text-white transition-colors duration-300" dir={dir}>
+    <div 
+      className="min-h-screen bg-gray-50 dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] dark:from-slate-900 dark:via-slate-900 dark:to-black text-slate-900 dark:text-white transition-colors duration-300" 
+      dir={dir}
+      style={{
+        '--theme-primary': themeColors.primary,
+        '--theme-hover': themeColors.hover,
+        '--theme-light': themeColors.light,
+        '--theme-text': themeColors.text,
+      } as React.CSSProperties}
+    >
       <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
         
         {/* Header */}
         <header className="mb-10 animate-in slide-in-from-top-5 duration-700">
-          <div className="bg-white dark:bg-gradient-to-r dark:from-blue-700 dark:to-indigo-800 rounded-3xl p-8 shadow-xl dark:shadow-blue-900/20 border border-gray-200 dark:border-blue-600/30 relative overflow-hidden transition-all duration-300">
-             {/* Background Pattern (Dark Mode Only) */}
-            <div className="absolute top-0 left-0 w-full h-full opacity-0 dark:opacity-10 pointer-events-none">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-                </svg>
-            </div>
-            
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl dark:shadow-slate-900/20 border border-gray-200 dark:border-slate-700 relative overflow-hidden transition-all duration-300">
+             {/* Gradient Background based on Theme */}
+             <div 
+               className="absolute top-0 right-0 w-full h-full opacity-0 dark:opacity-20 pointer-events-none transition-colors duration-500"
+               style={{ background: `linear-gradient(to right, ${themeColors.primary}, transparent)` }}
+             />
+
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
               <div>
                 <h1 className="text-3xl md:text-4xl font-black mb-2 tracking-tight">
-                  {t('app.title')} <span className="text-blue-600 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-cyan-300 dark:to-blue-300">EcoMonitor</span>
+                  {t('app.title')} <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})` }}>EcoMonitor</span>
                 </h1>
-                <p className="text-slate-600 dark:text-blue-100/80 font-medium text-lg max-w-2xl">
+                <p className="text-slate-600 dark:text-slate-400 font-medium text-lg max-w-2xl">
                   {t('app.subtitle')}
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {/* Color Picker */}
+                <div className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-slate-900/50 rounded-xl border border-gray-200 dark:border-slate-700">
+                    <Palette size={16} className="text-slate-500 ml-1" />
+                    {colors.map(c => (
+                        <button
+                            key={c.id}
+                            onClick={() => setAccentColor(c.id)}
+                            className={`w-6 h-6 rounded-full transition-transform hover:scale-110 ${c.bg} ${accentColor === c.id ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-white scale-110' : 'opacity-70 hover:opacity-100'}`}
+                        />
+                    ))}
+                </div>
+
                 <div className="flex items-center gap-2">
                     <button 
                         onClick={toggleTheme}
@@ -120,7 +154,7 @@ const App: React.FC = () => {
                 
                 <div className="hidden md:flex items-center gap-3 bg-blue-50 dark:bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-blue-100 dark:border-white/10">
                     <Zap className="text-amber-500 dark:text-yellow-400 fill-amber-500 dark:fill-yellow-400" />
-                    <span className="font-bold text-blue-900 dark:text-white">{t('gemini.powered')}</span>
+                    <span className="font-bold text-slate-800 dark:text-white">{t('gemini.powered')}</span>
                 </div>
               </div>
             </div>
@@ -132,12 +166,13 @@ const App: React.FC = () => {
           {navItems.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
+              onClick={() => setActiveTab(tab.id as any)}
               className={`flex-1 min-w-[140px] py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-sm md:text-base ${
                 activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]' 
+                  ? 'text-white shadow-lg scale-[1.02]' 
                   : 'bg-transparent text-slate-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
+              style={activeTab === tab.id ? { backgroundColor: themeColors.primary, boxShadow: `0 10px 15px -3px ${themeColors.primary}50` } : {}}
             >
               <tab.icon size={22} strokeWidth={2.5} />
               {tab.label}
@@ -169,6 +204,7 @@ const App: React.FC = () => {
               exhausts={exhausts} 
               onAddData={handleAddData} 
               onAddExhaust={handleAddExhaust}
+              onImportData={handleImportData}
             />
           )}
 
@@ -178,6 +214,10 @@ const App: React.FC = () => {
               exhausts={exhausts} 
               onBack={() => setActiveTab('dashboard')}
             />
+          )}
+
+          {activeTab === 'chat' && (
+             <ChatBot />
           )}
 
           {activeTab === 'history' && (

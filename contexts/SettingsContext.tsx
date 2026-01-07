@@ -2,14 +2,18 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Theme = 'light' | 'dark';
 type Language = 'fa' | 'en';
+export type AccentColor = 'blue' | 'emerald' | 'violet' | 'amber' | 'rose';
 
 interface SettingsContextType {
   theme: Theme;
   language: Language;
+  accentColor: AccentColor;
   toggleTheme: () => void;
   toggleLanguage: () => void;
+  setAccentColor: (color: AccentColor) => void;
   t: (key: string) => string;
   dir: 'rtl' | 'ltr';
+  themeColors: { primary: string; hover: string; light: string; text: string };
 }
 
 const translations: Record<string, Record<Language, string>> = {
@@ -21,6 +25,7 @@ const translations: Record<string, Record<Language, string>> = {
   'nav.dataEntry': { fa: 'مدیریت داده‌ها', en: 'Data Management' },
   'nav.analysis': { fa: 'تحلیل هوشمند', en: 'AI Analysis' },
   'nav.history': { fa: 'روند کلی', en: 'History' },
+  'nav.chat': { fa: 'گفتگوی هوشمند', en: 'AI Chat' },
   'gemini.powered': { fa: 'Gemini 3 Powered', en: 'Powered by Gemini 3' },
 
   // Generic
@@ -49,6 +54,13 @@ const translations: Record<string, Record<Language, string>> = {
   'details.reAnalyzeBtn': { fa: 'تحلیل مجدد وضعیت', en: 'Re-analyze Status' },
   'details.getAnalysisBtn': { fa: 'دریافت تحلیل هوشمند', en: 'Get AI Analysis' },
 
+  // Chat
+  'chat.welcome': { fa: 'سلام! من دستیار هوشمند شما هستم. می‌توانید سوالات فنی خود را در مورد بویلرها، استانداردها و رفع عیب سیستم بپرسید.', en: 'Hello! I am your AI assistant. You can ask technical questions about boilers, standards, and troubleshooting.' },
+  'chat.placeholder': { fa: 'سوال خود را بپرسید...', en: 'Ask your question...' },
+  'chat.send': { fa: 'ارسال', en: 'Send' },
+  'chat.clear': { fa: 'شروع مجدد', en: 'New Chat' },
+  'chat.thinking': { fa: 'در حال فکر کردن...', en: 'Thinking...' },
+
   // Pollutants
   'pol.CO': { fa: 'مونوکسید کربن', en: 'Carbon Monoxide' },
   'pol.NOx': { fa: 'اکسیدهای نیتروژن', en: 'Nitrogen Oxides' },
@@ -56,6 +68,13 @@ const translations: Record<string, Record<Language, string>> = {
   'pol.PM': { fa: 'ذرات معلق', en: 'Particulate Matter' },
   'pol.O2': { fa: 'اکسیژن', en: 'Oxygen' },
   'pol.CO2': { fa: 'دی‌اکسید کربن', en: 'Carbon Dioxide' },
+  
+  // Colors
+  'color.blue': { fa: 'آبی', en: 'Blue' },
+  'color.emerald': { fa: 'زمردی', en: 'Emerald' },
+  'color.violet': { fa: 'بنفش', en: 'Violet' },
+  'color.amber': { fa: 'کهربایی', en: 'Amber' },
+  'color.rose': { fa: 'سرخ', en: 'Rose' },
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -63,6 +82,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('dark');
   const [language, setLanguage] = useState<Language>('fa');
+  const [accentColor, setAccentColor] = useState<AccentColor>('blue');
 
   useEffect(() => {
     // Apply Theme
@@ -93,14 +113,27 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return translations[key]?.[language] || key;
   };
 
+  const getThemeColors = () => {
+    switch(accentColor) {
+        case 'emerald': return { primary: '#059669', hover: '#047857', light: '#ecfdf5', text: '#065f46' };
+        case 'violet': return { primary: '#7c3aed', hover: '#6d28d9', light: '#f5f3ff', text: '#5b21b6' };
+        case 'amber': return { primary: '#d97706', hover: '#b45309', light: '#fffbeb', text: '#92400e' };
+        case 'rose': return { primary: '#e11d48', hover: '#be123c', light: '#fff1f2', text: '#9f1239' };
+        default: return { primary: '#2563eb', hover: '#1d4ed8', light: '#eff6ff', text: '#1e40af' }; // blue
+    }
+  };
+
   return (
     <SettingsContext.Provider value={{ 
       theme, 
       language, 
+      accentColor,
       toggleTheme, 
       toggleLanguage, 
+      setAccentColor,
       t,
-      dir: language === 'fa' ? 'rtl' : 'ltr'
+      dir: language === 'fa' ? 'rtl' : 'ltr',
+      themeColors: getThemeColors()
     }}>
       {children}
     </SettingsContext.Provider>
