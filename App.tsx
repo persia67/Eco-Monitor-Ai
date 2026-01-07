@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Activity, FileText, TrendingUp, Menu, Zap } from 'lucide-react';
+import { Activity, FileText, TrendingUp, Menu, Zap, History } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
-import { Exhaust, PollutantData, AIAnalysisResult, TabType } from './types';
+import { HistoryLog } from './components/HistoryLog';
+import { Exhaust, PollutantData, AIAnalysisResult, TabType, HistoryLogEntry } from './types';
 import { INITIAL_EXHAUSTS } from './constants';
 import { generateExhaustAnalysis } from './services/geminiService';
 
@@ -12,10 +13,35 @@ const App: React.FC = () => {
   const [exhausts, setExhausts] = useState<Exhaust[]>(INITIAL_EXHAUSTS);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // History Logs State
+  const [logs, setLogs] = useState<HistoryLogEntry[]>([
+    {
+      id: 'init',
+      action: 'system',
+      title: 'راه‌اندازی سیستم',
+      description: 'سامانه با داده‌های اولیه بارگذاری شد.',
+      timestamp: new Date().toLocaleString('fa-IR')
+    }
+  ]);
+
+  const addLog = (action: HistoryLogEntry['action'], title: string, description: string, exhaustName?: string) => {
+    const newLog: HistoryLogEntry = {
+      id: Date.now().toString(),
+      action,
+      title,
+      description,
+      timestamp: new Date().toLocaleString('fa-IR'),
+      exhaustName
+    };
+    setLogs(prev => [newLog, ...prev]);
+  };
 
   const handleAddData = (exhaustId: string, newData: PollutantData) => {
+    let exhaustName = '';
     setExhausts(prev => prev.map(exhaust => {
       if (exhaust.id === parseInt(exhaustId)) {
+        exhaustName = exhaust.name;
         return {
           ...exhaust,
           data: newData,
@@ -24,6 +50,13 @@ const App: React.FC = () => {
       }
       return exhaust;
     }));
+    
+    addLog(
+      'data_entry',
+      'بروزرسانی داده‌های پایش',
+      'مقادیر جدید آلاینده‌ها توسط اپراتور ثبت و ذخیره شد.',
+      exhaustName
+    );
     setActiveTab('dashboard');
   };
 
@@ -37,12 +70,17 @@ const App: React.FC = () => {
       lastCheck: 'ثبت نشده'
     };
     setExhausts(prev => [...prev, newExhaust]);
+    
+    addLog(
+      'new_exhaust',
+      'افزودن منبع جدید',
+      `اگزوز جدید با موقعیت مکانی "${location}" به سامانه اضافه شد.`,
+      name
+    );
   };
 
   const handleAnalyze = async (exhaust: Exhaust) => {
     setIsAnalyzing(true);
-    // Switch to analysis tab immediately to show loading state context if desired, 
-    // but here we wait for result or show loading on button
     try {
       const resultText = await generateExhaustAnalysis(exhaust);
       setAiAnalysis({
@@ -50,6 +88,14 @@ const App: React.FC = () => {
         analysis: resultText,
         timestamp: new Date().toLocaleString('fa-IR')
       });
+      
+      addLog(
+        'ai_analysis',
+        'تحلیل هوشمند موفق',
+        'گزارش فنی و تحلیل آلاینده‌ها توسط هوش مصنوعی تولید شد.',
+        exhaust.name
+      );
+      
       setActiveTab('analysis');
     } catch (error) {
       console.error("Analysis failed", error);
@@ -60,8 +106,9 @@ const App: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'داشبورد وضعیت', icon: Activity },
-    { id: 'data-entry', label: 'مدیریت و ورود داده‌ها', icon: FileText },
-    { id: 'analysis', label: 'تحلیل هوشمند AI', icon: TrendingUp }
+    { id: 'data-entry', label: 'مدیریت داده‌ها', icon: FileText },
+    { id: 'analysis', label: 'تحلیل هوشمند', icon: TrendingUp },
+    { id: 'history', label: 'تاریخچه فعالیت', icon: History }
   ];
 
   return (
@@ -96,12 +143,12 @@ const App: React.FC = () => {
         </header>
 
         {/* Navigation */}
-        <nav className="flex flex-col sm:flex-row gap-3 mb-8 bg-slate-900/50 p-2 rounded-2xl border border-slate-800 backdrop-blur-sm sticky top-4 z-50 shadow-xl">
+        <nav className="flex flex-col sm:flex-row gap-3 mb-8 bg-slate-900/50 p-2 rounded-2xl border border-slate-800 backdrop-blur-sm sticky top-4 z-50 shadow-xl overflow-x-auto">
           {navItems.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`flex-1 py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-sm md:text-base ${
+              className={`flex-1 min-w-[140px] py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-sm md:text-base ${
                 activeTab === tab.id 
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]' 
                   : 'bg-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200'
@@ -137,6 +184,10 @@ const App: React.FC = () => {
               exhausts={exhausts}
               onBack={() => setActiveTab('dashboard')}
             />
+          )}
+
+          {activeTab === 'history' && (
+            <HistoryLog logs={logs} />
           )}
         </main>
       </div>

@@ -40,4 +40,13 @@ export interface AIAnalysisResult {
   timestamp: string;
 }
 
-export type TabType = 'dashboard' | 'data-entry' | 'analysis';
+export interface HistoryLogEntry {
+  id: string;
+  action: 'data_entry' | 'ai_analysis' | 'new_exhaust' | 'system';
+  title: string;
+  description: string;
+  timestamp: string;
+  exhaustName?: string;
+}
+
+export type TabType = 'dashboard' | 'data-entry' | 'analysis' | 'history';
