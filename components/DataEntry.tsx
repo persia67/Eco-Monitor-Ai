@@ -28,6 +28,7 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
       SO2: Number(formData.SO2) || 0,
       NOx: Number(formData.NOx) || 0,
       PM: Number(formData.PM) || 0,
+      O2: Number(formData.O2) || 0,
     };
 
     onAddData(exhaustId, completeData);

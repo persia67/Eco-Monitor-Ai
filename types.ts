@@ -4,13 +4,21 @@ export interface PollutantData {
   SO2: number;
   NOx: number;
   PM: number;
+  O2: number;
   [key: string]: number;
+}
+
+export interface Measurement {
+  period: string;
+  date: string;
+  data: PollutantData;
 }
 
 export interface Exhaust {
   id: number;
   name: string;
-  data: PollutantData;
+  data: PollutantData; // Latest data
+  history: Measurement[]; // Historical data
   location: string;
   lastCheck: string;
 }
@@ -40,13 +48,4 @@ export interface AIAnalysisResult {
   timestamp: string;
 }
 
-export interface HistoryLogEntry {
-  id: string;
-  action: 'data_entry' | 'ai_analysis' | 'new_exhaust' | 'system';
-  title: string;
-  description: string;
-  timestamp: string;
-  exhaustName?: string;
-}
-
-export type TabType = 'dashboard' | 'data-entry' | 'analysis' | 'history';
+export type TabType = 'dashboard' | 'data-entry' | 'analysis' | 'history' | 'details';

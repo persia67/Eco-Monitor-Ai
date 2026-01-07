@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Activity, FileText, TrendingUp, Menu, Zap, History } from 'lucide-react';
+import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
-import { HistoryLog } from './components/HistoryLog';
-import { Exhaust, PollutantData, AIAnalysisResult, TabType, HistoryLogEntry } from './types';
+import { MeasurementHistory } from './components/HistoryLog';
+import { ExhaustDetails } from './components/ExhaustDetails';
+import { Exhaust, PollutantData, AIAnalysisResult, TabType } from './types';
 import { INITIAL_EXHAUSTS } from './constants';
 import { generateExhaustAnalysis } from './services/geminiService';
 
@@ -14,49 +15,26 @@ const App: React.FC = () => {
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
-  // History Logs State
-  const [logs, setLogs] = useState<HistoryLogEntry[]>([
-    {
-      id: 'init',
-      action: 'system',
-      title: 'راه‌اندازی سیستم',
-      description: 'سامانه با داده‌های اولیه بارگذاری شد.',
-      timestamp: new Date().toLocaleString('fa-IR')
-    }
-  ]);
-
-  const addLog = (action: HistoryLogEntry['action'], title: string, description: string, exhaustName?: string) => {
-    const newLog: HistoryLogEntry = {
-      id: Date.now().toString(),
-      action,
-      title,
-      description,
-      timestamp: new Date().toLocaleString('fa-IR'),
-      exhaustName
-    };
-    setLogs(prev => [newLog, ...prev]);
-  };
-
   const handleAddData = (exhaustId: string, newData: PollutantData) => {
-    let exhaustName = '';
     setExhausts(prev => prev.map(exhaust => {
       if (exhaust.id === parseInt(exhaustId)) {
-        exhaustName = exhaust.name;
         return {
           ...exhaust,
           data: newData,
-          lastCheck: new Date().toLocaleDateString('fa-IR')
+          lastCheck: new Date().toLocaleDateString('fa-IR'),
+          // In a real app, we would also append to the history array here
+          history: [
+            ...exhaust.history, 
+            {
+                period: 'دوره جاری',
+                date: new Date().toLocaleDateString('fa-IR'),
+                data: newData
+            }
+          ]
         };
       }
       return exhaust;
     }));
-    
-    addLog(
-      'data_entry',
-      'بروزرسانی داده‌های پایش',
-      'مقادیر جدید آلاینده‌ها توسط اپراتور ثبت و ذخیره شد.',
-      exhaustName
-    );
     setActiveTab('dashboard');
   };
 
@@ -66,20 +44,14 @@ const App: React.FC = () => {
       id: newId,
       name,
       location,
-      data: { CO: 0, CO2: 0, SO2: 0, NOx: 0, PM: 0 },
+      data: { CO: 0, CO2: 0, SO2: 0, NOx: 0, PM: 0, O2: 0 },
+      history: [],
       lastCheck: 'ثبت نشده'
     };
     setExhausts(prev => [...prev, newExhaust]);
-    
-    addLog(
-      'new_exhaust',
-      'افزودن منبع جدید',
-      `اگزوز جدید با موقعیت مکانی "${location}" به سامانه اضافه شد.`,
-      name
-    );
   };
 
-  const handleAnalyze = async (exhaust: Exhaust) => {
+  const handleAnalyze = async (exhaust: Exhaust, switchTab: boolean = true) => {
     setIsAnalyzing(true);
     try {
       const resultText = await generateExhaustAnalysis(exhaust);
@@ -88,15 +60,7 @@ const App: React.FC = () => {
         analysis: resultText,
         timestamp: new Date().toLocaleString('fa-IR')
       });
-      
-      addLog(
-        'ai_analysis',
-        'تحلیل هوشمند موفق',
-        'گزارش فنی و تحلیل آلاینده‌ها توسط هوش مصنوعی تولید شد.',
-        exhaust.name
-      );
-      
-      setActiveTab('analysis');
+      if (switchTab) setActiveTab('analysis');
     } catch (error) {
       console.error("Analysis failed", error);
     } finally {
@@ -106,9 +70,10 @@ const App: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'داشبورد وضعیت', icon: Activity },
+    { id: 'details', label: 'جزئیات اگزوز', icon: Info },
     { id: 'data-entry', label: 'مدیریت داده‌ها', icon: FileText },
     { id: 'analysis', label: 'تحلیل هوشمند', icon: TrendingUp },
-    { id: 'history', label: 'تاریخچه فعالیت', icon: History }
+    { id: 'history', label: 'روند کلی', icon: BarChart3 }
   ];
 
   return (
@@ -165,8 +130,17 @@ const App: React.FC = () => {
           {activeTab === 'dashboard' && (
             <Dashboard 
               exhausts={exhausts} 
-              onAnalyze={handleAnalyze} 
+              onAnalyze={(e) => handleAnalyze(e, true)} 
               isAnalyzing={isAnalyzing} 
+            />
+          )}
+          
+          {activeTab === 'details' && (
+            <ExhaustDetails 
+              exhausts={exhausts}
+              aiAnalysis={aiAnalysis}
+              isAnalyzing={isAnalyzing}
+              onAnalyze={handleAnalyze}
             />
           )}
           
@@ -181,13 +155,13 @@ const App: React.FC = () => {
           {activeTab === 'analysis' && (
             <AnalysisResult 
               analysis={aiAnalysis}
-              exhausts={exhausts}
+              exhausts={exhausts} 
               onBack={() => setActiveTab('dashboard')}
             />
           )}
 
           {activeTab === 'history' && (
-            <HistoryLog logs={logs} />
+            <MeasurementHistory exhausts={exhausts} />
           )}
         </main>
       </div>

@@ -1,86 +1,168 @@
-import React from 'react';
-import { History, FileText, Zap, PlusCircle, Clock, Activity } from 'lucide-react';
-import { HistoryLogEntry } from '../types';
+import React, { useState } from 'react';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area
+} from 'recharts';
+import { TrendingUp, Filter } from 'lucide-react';
+import { Exhaust, Measurement } from '../types';
+import { STANDARDS } from '../constants';
 
-interface HistoryLogProps {
-  logs: HistoryLogEntry[];
+interface MeasurementHistoryProps {
+  exhausts: Exhaust[];
 }
 
-export const HistoryLog: React.FC<HistoryLogProps> = ({ logs }) => {
-  if (logs.length === 0) {
-    return (
-      <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-12 shadow-xl border border-slate-700/50 text-center animate-in fade-in zoom-in duration-500">
-        <div className="w-24 h-24 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-6">
-          <History size={48} className="text-slate-500 opacity-50" />
+export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts }) => {
+  const [selectedExhaustId, setSelectedExhaustId] = useState<number>(exhausts[0]?.id || 1);
+  
+  const selectedExhaust = exhausts.find(e => e.id === selectedExhaustId);
+  
+  // Transform history data for Recharts
+  const chartData = selectedExhaust?.history.map(h => ({
+    name: h.period,
+    date: h.date,
+    ...h.data
+  })) || [];
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-xl">
+          <p className="font-bold text-slate-200 mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 text-sm">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></span>
+              <span className="text-slate-400">{entry.name}:</span>
+              <span className="font-mono font-bold text-slate-200">{entry.value}</span>
+            </div>
+          ))}
         </div>
-        <h3 className="text-xl font-bold text-slate-300 mb-2">تاریخچه‌ای موجود نیست</h3>
-        <p className="text-slate-400">هنوز فعالیت یا تغییری در سیستم ثبت نشده است.</p>
-      </div>
-    );
-  }
-
-  const getIcon = (action: string) => {
-    switch (action) {
-      case 'data_entry': return <FileText size={20} className="text-blue-400" />;
-      case 'ai_analysis': return <Zap size={20} className="text-yellow-400" />;
-      case 'new_exhaust': return <PlusCircle size={20} className="text-emerald-400" />;
-      default: return <Activity size={20} className="text-slate-400" />;
+      );
     }
-  };
-
-  const getColor = (action: string) => {
-    switch (action) {
-      case 'data_entry': return 'bg-blue-500/10 border-blue-500/20';
-      case 'ai_analysis': return 'bg-yellow-500/10 border-yellow-500/20';
-      case 'new_exhaust': return 'bg-emerald-500/10 border-emerald-500/20';
-      default: return 'bg-slate-700/30 border-slate-600/30';
-    }
+    return null;
   };
 
   return (
-    <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500 max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-slate-700/50 rounded-xl text-slate-300">
-          <History size={28} />
+    <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500 w-full">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-indigo-500/20 rounded-xl text-indigo-400">
+            <TrendingUp size={28} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">روند تغییرات آلاینده‌ها</h2>
+            <p className="text-slate-400 mt-1">مقایسه عملکرد در دوره‌های مختلف پایش (بهار، تابستان، پاییز)</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-white">تاریخچه فعالیت‌ها</h2>
-          <p className="text-slate-400 mt-1">گزارش عملکرد کاربران و تحلیل‌های سیستمی</p>
+
+        <div className="flex items-center gap-3 bg-slate-900/80 p-2 rounded-xl border border-slate-700">
+          <Filter size={18} className="text-slate-400 mr-2" />
+          <select
+            value={selectedExhaustId}
+            onChange={(e) => setSelectedExhaustId(parseInt(e.target.value))}
+            className="bg-transparent text-white focus:outline-none min-w-[200px] text-sm md:text-base"
+          >
+            {exhausts.map(ex => (
+              <option key={ex.id} value={ex.id}>{ex.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <div className="relative border-r border-slate-700/50 mr-4 space-y-6 pr-8">
-        {logs.map((log) => (
-          <div key={log.id} className="relative group">
-            {/* Timeline Dot */}
-            <div className="absolute -right-[39px] top-4 w-5 h-5 rounded-full bg-slate-800 border-4 border-slate-600 group-hover:border-blue-500 transition-colors z-10"></div>
-            
-            <div className={`rounded-2xl p-5 border backdrop-blur-sm transition-all hover:scale-[1.01] ${getColor(log.action)}`}>
-              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-slate-800 rounded-lg">
-                    {getIcon(log.action)}
-                  </div>
-                  <h4 className="font-bold text-lg text-slate-200">{log.title}</h4>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-900/40 px-3 py-1.5 rounded-lg border border-slate-700/30 w-fit">
-                  <Clock size={14} />
-                  <span dir="ltr">{log.timestamp}</span>
-                </div>
-              </div>
-              
-              <div className="text-slate-400 text-sm leading-relaxed pr-[52px]">
-                {log.description}
-                {log.exhaustName && (
-                  <div className="mt-2 inline-block bg-slate-800 px-2 py-1 rounded text-xs text-slate-300 border border-slate-700">
-                    منبع: {log.exhaustName}
-                  </div>
-                )}
-              </div>
+      {!selectedExhaust ? (
+        <div className="text-center text-slate-500 py-12">اگزوزی انتخاب نشده است.</div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Combustion Gases Chart */}
+          <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <h3 className="text-lg font-bold text-slate-200 mb-6 border-b border-slate-700 pb-2">
+              گازهای احتراقی (CO, NOx)
+            </h3>
+            <div className="h-[300px] w-full" dir="ltr">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="name" tick={{fill: '#94a3b8'}} />
+                  <YAxis tick={{fill: '#94a3b8'}} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line type="monotone" dataKey="CO" name="CO" stroke="#f59e0b" strokeWidth={3} dot={{r: 6}} activeDot={{r: 8}} />
+                  <Line type="monotone" dataKey="NOx" name="NOx" stroke="#ef4444" strokeWidth={3} dot={{r: 6}} activeDot={{r: 8}} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* O2 Chart */}
+          <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <h3 className="text-lg font-bold text-slate-200 mb-6 border-b border-slate-700 pb-2">
+              میزان اکسیژن (O2)
+            </h3>
+            <div className="h-[300px] w-full" dir="ltr">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorO2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="name" tick={{fill: '#94a3b8'}} />
+                  <YAxis tick={{fill: '#94a3b8'}} domain={[0, 25]} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Area type="monotone" dataKey="O2" name="O2 (%)" stroke="#3b82f6" fillOpacity={1} fill="url(#colorO2)" strokeWidth={3} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Particles Chart */}
+          <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <h3 className="text-lg font-bold text-slate-200 mb-6 border-b border-slate-700 pb-2">
+              ذرات معلق (PM)
+            </h3>
+            <div className="h-[300px] w-full" dir="ltr">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="name" tick={{fill: '#94a3b8'}} />
+                  <YAxis tick={{fill: '#94a3b8'}} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line type="step" dataKey="PM" name="PM" stroke="#8b5cf6" strokeWidth={3} dot={{r: 6}} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+           {/* SO2 Chart */}
+           <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <h3 className="text-lg font-bold text-slate-200 mb-6 border-b border-slate-700 pb-2">
+              دی‌اکسید گوگرد (SO2)
+            </h3>
+            <div className="h-[300px] w-full" dir="ltr">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                   <defs>
+                    <linearGradient id="colorSO2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="name" tick={{fill: '#94a3b8'}} />
+                  <YAxis tick={{fill: '#94a3b8'}} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Area type="monotone" dataKey="SO2" name="SO2" stroke="#10b981" fill="url(#colorSO2)" strokeWidth={3} dot={{r: 6}} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+      )}
     </div>
   );
 };
