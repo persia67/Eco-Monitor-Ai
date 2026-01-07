@@ -80,12 +80,12 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Combustion Gases Chart */}
-          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300 min-w-0">
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 border-b border-gray-100 dark:border-slate-700 pb-2">
               {t('details.combustion')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="99%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
                   <XAxis dataKey="name" tick={{fill: '#64748b'}} />
@@ -100,12 +100,12 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
           </div>
 
           {/* O2 Chart */}
-          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300 min-w-0">
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 border-b border-gray-100 dark:border-slate-700 pb-2">
               {t('details.oxygen')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="99%" height="100%">
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorO2" x1="0" y1="0" x2="0" y2="1">
@@ -125,12 +125,12 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
           </div>
 
           {/* Particles Chart */}
-          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300">
+          <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300 min-w-0">
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 border-b border-gray-100 dark:border-slate-700 pb-2">
               {t('details.particles')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="99%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
                   <XAxis dataKey="name" tick={{fill: '#64748b'}} />
@@ -144,12 +144,12 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
           </div>
 
            {/* SO2 Chart */}
-           <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300">
+           <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700/50 transition-colors duration-300 min-w-0">
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 border-b border-gray-100 dark:border-slate-700 pb-2">
               {t('details.so2')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="99%" height="100%">
                 <AreaChart data={chartData}>
                    <defs>
                     <linearGradient id="colorSO2" x1="0" y1="0" x2="0" y2="1">

@@ -114,7 +114,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
                 {t('details.combustion')}
               </h3>
               <div className="h-[250px] w-full" dir="ltr">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="99%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
                     <XAxis dataKey="name" tick={{fill: '#64748b', fontSize: 12}} />
@@ -135,7 +135,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
                 {t('details.oxygen')}
               </h3>
               <div className="h-[250px] w-full" dir="ltr">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="99%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorO2Details" x1="0" y1="0" x2="0" y2="1">

@@ -94,7 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
               </div>
 
               <div className="mb-6 h-[220px] w-full" dir="ltr">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="99%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getRadarData(exhaust.data)}>
                     <PolarGrid stroke="#94a3b8" strokeDasharray="3 3" />
                     <PolarAngleAxis dataKey="pollutant" tick={{fill: '#64748b', fontSize: 12}} />
@@ -180,7 +180,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
           مقایسه جامع آلاینده‌ها با استانداردهای ISO 14001
         </h3>
         <div className="h-[400px] w-full" dir="ltr">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="99%" height="100%">
             <BarChart data={getComparisonData()} barSize={20}>
               <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} vertical={false} />
               <XAxis dataKey="name" tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} dy={10} />
