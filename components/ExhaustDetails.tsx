@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
-import { Filter, Info, MapPin, Calendar, Activity, Zap, FileText, Table, ChevronLeft } from 'lucide-react';
+import { Filter, Info, MapPin, Calendar, Activity, Zap, FileText, Table, ChevronLeft, WifiOff } from 'lucide-react';
 import { Exhaust, AIAnalysisResult } from '../types';
 import { STANDARDS } from '../constants';
 import { useSettings } from '../contexts/SettingsContext';
@@ -12,10 +12,11 @@ interface ExhaustDetailsProps {
   aiAnalysis: AIAnalysisResult | null;
   isAnalyzing: boolean;
   onAnalyze: (exhaust: Exhaust, switchTab?: boolean) => void;
+  isOnline: boolean;
 }
 
 export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({ 
-  exhausts, aiAnalysis, isAnalyzing, onAnalyze 
+  exhausts, aiAnalysis, isAnalyzing, onAnalyze, isOnline
 }) => {
   const [selectedExhaustId, setSelectedExhaustId] = useState<number>(exhausts[0]?.id || 1);
   const { t, language, themeColors } = useSettings();
@@ -242,11 +243,20 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
 
              <button
                 onClick={() => onAnalyze(selectedExhaust, false)}
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || !isOnline}
+                title={!isOnline ? t('error.offlineDesc') : ''}
                 className="w-full sm:w-auto text-white py-3 px-8 rounded-xl font-bold shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-                style={{ backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})`, boxShadow: `0 10px 15px -3px ${themeColors.primary}30` }}
+                style={isOnline 
+                  ? { backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})`, boxShadow: `0 10px 15px -3px ${themeColors.primary}30` }
+                  : { backgroundColor: '#94a3b8' }
+                }
               >
-                {isAnalyzing ? (
+                {!isOnline ? (
+                  <>
+                    <WifiOff size={20} />
+                    {t('error.offline')}
+                  </>
+                ) : isAnalyzing ? (
                   <>
                     <Activity className="animate-spin" size={20} />
                     {t('loading')}

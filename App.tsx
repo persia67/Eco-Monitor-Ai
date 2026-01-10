@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info, Moon, Sun, Languages, Palette, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info, Moon, Sun, Languages, Palette, MessageSquare, Wifi, WifiOff } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
@@ -13,12 +13,56 @@ import { useSettings, AccentColor } from './contexts/SettingsContext';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType | 'chat'>('dashboard');
-  const [exhausts, setExhausts] = useState<Exhaust[]>(INITIAL_EXHAUSTS);
+  
+  // Initialize state from LocalStorage or fallback to constants
+  const [exhausts, setExhausts] = useState<Exhaust[]>(() => {
+    try {
+      const saved = localStorage.getItem('ecomonitor_exhausts');
+      return saved ? JSON.parse(saved) : INITIAL_EXHAUSTS;
+    } catch (e) {
+      console.error("Failed to load from local storage", e);
+      return INITIAL_EXHAUSTS;
+    }
+  });
+
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  // Navigation visual state
+  const [isScrolled, setIsScrolled] = useState(false);
   
   const { theme, toggleTheme, language, toggleLanguage, t, dir, accentColor, setAccentColor, themeColors } = useSettings();
+
+  // Persist data when changed
+  useEffect(() => {
+    localStorage.setItem('ecomonitor_exhausts', JSON.stringify(exhausts));
+  }, [exhausts]);
+
+  // Monitor Network Status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
+  // Handle Scroll Effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleAddData = (exhaustId: string, newData: PollutantData, period: string) => {
     setExhausts(prev => prev.map(exhaust => {
       if (exhaust.id === parseInt(exhaustId)) {
@@ -59,6 +103,11 @@ const App: React.FC = () => {
   };
 
   const handleAnalyze = async (exhaust: Exhaust, switchTab: boolean = true) => {
+    if (!isOnline) {
+      alert(t('error.offlineDesc'));
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
       const resultText = await generateExhaustAnalysis(exhaust);
@@ -125,6 +174,20 @@ const App: React.FC = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row items-center gap-4">
+                
+                {/* Online Status Indicator */}
+                <div 
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-bold transition-all ${
+                    isOnline 
+                      ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400' 
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
+                  }`}
+                  title={isOnline ? t('status.online') : t('status.offline')}
+                >
+                  {isOnline ? <Wifi size={18} /> : <WifiOff size={18} />}
+                  <span className="hidden sm:inline">{isOnline ? t('status.online') : t('status.offline')}</span>
+                </div>
+
                 {/* Color Picker */}
                 <div className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-slate-900/50 rounded-xl border border-gray-200 dark:border-slate-700">
                     <Palette size={16} className="text-slate-500 ml-1" />
@@ -161,20 +224,33 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* Navigation */}
-        <nav className="flex flex-col sm:flex-row gap-3 mb-8 bg-white/60 dark:bg-slate-900/50 p-2 rounded-2xl border border-gray-200 dark:border-slate-800 backdrop-blur-sm sticky top-4 z-50 shadow-lg dark:shadow-xl overflow-x-auto transition-all duration-300">
+        {/* Navigation - Always visible sticky dock with compact effect on scroll */}
+        <nav 
+          className={`
+            flex flex-row items-center gap-2 mb-8 
+            backdrop-blur-xl sticky top-4 z-50 
+            overflow-x-auto custom-scrollbar
+            transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)
+            border
+            ${isScrolled 
+              ? 'bg-white/95 dark:bg-slate-800/95 shadow-2xl border-gray-300 dark:border-slate-600 p-2 rounded-[2rem] mx-0 md:mx-auto md:max-w-4xl' 
+              : 'bg-white/60 dark:bg-slate-900/50 shadow-lg border-gray-200 dark:border-slate-800 p-3 rounded-2xl w-full'}
+          `}
+        >
           {navItems.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 min-w-[140px] py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-sm md:text-base ${
-                activeTab === tab.id 
-                  ? 'text-white shadow-lg scale-[1.02]' 
-                  : 'bg-transparent text-slate-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-              style={activeTab === tab.id ? { backgroundColor: themeColors.primary, boxShadow: `0 10px 15px -3px ${themeColors.primary}50` } : {}}
+              className={`
+                flex-1 min-w-[120px] rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap
+                ${isScrolled ? 'py-3 px-4 text-sm' : 'py-4 px-6 text-sm md:text-base'}
+                ${activeTab === tab.id 
+                  ? 'text-white shadow-md scale-[1.02]' 
+                  : 'bg-transparent text-slate-500 dark:text-slate-400 hover:bg-gray-100/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-200'}
+              `}
+              style={activeTab === tab.id ? { backgroundColor: themeColors.primary, boxShadow: `0 4px 12px ${themeColors.primary}40` } : {}}
             >
-              <tab.icon size={22} strokeWidth={2.5} />
+              <tab.icon size={isScrolled ? 18 : 22} strokeWidth={2.5} className="transition-all duration-300" />
               {tab.label}
             </button>
           ))}
@@ -187,6 +263,7 @@ const App: React.FC = () => {
               exhausts={exhausts} 
               onAnalyze={(e) => handleAnalyze(e, true)} 
               isAnalyzing={isAnalyzing} 
+              isOnline={isOnline}
             />
           )}
           
@@ -196,6 +273,7 @@ const App: React.FC = () => {
               aiAnalysis={aiAnalysis}
               isAnalyzing={isAnalyzing}
               onAnalyze={handleAnalyze}
+              isOnline={isOnline}
             />
           )}
           
@@ -217,7 +295,7 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'chat' && (
-             <ChatBot />
+             <ChatBot isOnline={isOnline} />
           )}
 
           {activeTab === 'history' && (

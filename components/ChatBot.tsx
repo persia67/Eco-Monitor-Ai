@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, RefreshCw, MessageSquare, Sparkles } from 'lucide-react';
+import { Send, Bot, User, RefreshCw, MessageSquare, Sparkles, WifiOff } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { sendChatMessage, resetChatSession } from '../services/geminiService';
 
@@ -10,7 +10,11 @@ interface Message {
   timestamp: string;
 }
 
-export const ChatBot: React.FC = () => {
+interface ChatBotProps {
+  isOnline: boolean;
+}
+
+export const ChatBot: React.FC<ChatBotProps> = ({ isOnline }) => {
   const { t, themeColors, dir } = useSettings();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -33,7 +37,7 @@ export const ChatBot: React.FC = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !isOnline) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -88,7 +92,15 @@ export const ChatBot: React.FC = () => {
             </div>
             <div>
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('nav.chat')}</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Gemini 3 Pro Preview</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Gemini 3 Pro Preview</p>
+                  {!isOnline && (
+                    <span className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <WifiOff size={10} />
+                      {t('status.offline')}
+                    </span>
+                  )}
+                </div>
             </div>
         </div>
         <button 
@@ -150,14 +162,15 @@ export const ChatBot: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={t('chat.placeholder')}
+                placeholder={isOnline ? t('chat.placeholder') : t('chat.offlinePlaceholder')}
+                disabled={!isOnline}
                 rows={1}
-                className="w-full bg-gray-100 dark:bg-slate-900/80 border border-gray-200 dark:border-slate-600 rounded-xl px-4 py-3 pr-12 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none overflow-hidden max-h-32"
+                className="w-full bg-gray-100 dark:bg-slate-900/80 border border-gray-200 dark:border-slate-600 rounded-xl px-4 py-3 pr-12 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none overflow-hidden max-h-32 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ minHeight: '50px' }}
             />
             <button
                 onClick={handleSend}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || !isOnline}
                 className="absolute left-2 p-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-300 dark:disabled:bg-slate-700 text-white rounded-lg transition-all shadow-lg shadow-purple-500/20"
                 style={dir === 'ltr' ? { right: '0.5rem', left: 'auto' } : {}}
             >

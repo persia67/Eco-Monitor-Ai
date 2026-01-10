@@ -2,7 +2,8 @@ import { GoogleGenAI, Chat } from "@google/genai";
 import { Exhaust } from "../types";
 import { STANDARDS } from "../constants";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize carefully - if offline, we still define 'ai' but API calls will be guarded
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 // Chat session management
 let chatSession: Chat | null = null;
@@ -12,6 +13,10 @@ export const resetChatSession = () => {
 };
 
 export const sendChatMessage = async (message: string): Promise<string> => {
+  if (!navigator.onLine) {
+    return "اتصال اینترنت برقرار نیست. لطفاً برای دریافت پاسخ هوشمند، اتصال خود را بررسی کنید.";
+  }
+
   try {
     if (!chatSession) {
       chatSession = ai.chats.create({
@@ -31,6 +36,10 @@ export const sendChatMessage = async (message: string): Promise<string> => {
 };
 
 export const generateExhaustAnalysis = async (exhaustData: Exhaust): Promise<string> => {
+  if (!navigator.onLine) {
+    return "برای تحلیل هوشمند داده‌ها نیاز به اینترنت است. لطفاً اتصال خود را بررسی کرده و مجدداً تلاش کنید.";
+  }
+
   const dataDescription = Object.entries(exhaustData.data).map(([pollutant, value]) => {
     const std = STANDARDS[pollutant];
     return `- ${std.name} (${pollutant}): ${value} ${std.unit} (Standard Limit: ${std.limit})`;

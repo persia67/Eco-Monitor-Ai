@@ -37,6 +37,12 @@ const translations: Record<string, Record<Language, string>> = {
   'standard': { fa: 'حد', en: 'Limit' },
   'normal': { fa: 'نرمال', en: 'Normal' },
   
+  // Connectivity
+  'status.online': { fa: 'آنلاین', en: 'Online' },
+  'status.offline': { fa: 'آفلاین', en: 'Offline' },
+  'error.offline': { fa: 'عدم دسترسی به اینترنت', en: 'No Internet Connection' },
+  'error.offlineDesc': { fa: 'برای استفاده از قابلیت‌های هوش مصنوعی، لطفاً به اینترنت متصل شوید.', en: 'Please connect to the internet to use AI features.' },
+  
   // Exhaust Details
   'details.notFound': { fa: 'هیچ اگزوزی یافت نشد.', en: 'No exhaust found.' },
   'details.list': { fa: 'لیست اگزوزها', en: 'Exhaust List' },
@@ -57,6 +63,7 @@ const translations: Record<string, Record<Language, string>> = {
   // Chat
   'chat.welcome': { fa: 'سلام! من دستیار هوشمند شما هستم. می‌توانید سوالات فنی خود را در مورد بویلرها، استانداردها و رفع عیب سیستم بپرسید.', en: 'Hello! I am your AI assistant. You can ask technical questions about boilers, standards, and troubleshooting.' },
   'chat.placeholder': { fa: 'سوال خود را بپرسید...', en: 'Ask your question...' },
+  'chat.offlinePlaceholder': { fa: 'اتصال اینترنت برقرار نیست', en: 'No internet connection' },
   'chat.send': { fa: 'ارسال', en: 'Send' },
   'chat.clear': { fa: 'شروع مجدد', en: 'New Chat' },
   'chat.thinking': { fa: 'در حال فکر کردن...', en: 'Thinking...' },

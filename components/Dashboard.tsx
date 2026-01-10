@@ -3,7 +3,7 @@ import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
 } from 'recharts';
-import { AlertCircle, Activity } from 'lucide-react';
+import { AlertCircle, Activity, WifiOff } from 'lucide-react';
 import { Exhaust } from '../types';
 import { STANDARDS, DIAGNOSTIC_SYSTEM } from '../constants';
 import { useSettings } from '../contexts/SettingsContext';
@@ -12,10 +12,11 @@ interface DashboardProps {
   exhausts: Exhaust[];
   onAnalyze: (exhaust: Exhaust) => void;
   isAnalyzing: boolean;
+  isOnline: boolean;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAnalyzing }) => {
-  const { themeColors } = useSettings();
+export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAnalyzing, isOnline }) => {
+  const { themeColors, t } = useSettings();
 
   const calculateStatus = (value: number, limit: number) => {
     const percentage = (value / limit) * 100;
@@ -151,11 +152,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ exhausts, onAnalyze, isAna
 
               <button
                 onClick={() => onAnalyze(exhaust)}
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || !isOnline}
+                title={!isOnline ? t('error.offlineDesc') : ''}
                 className="group w-full mt-6 py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                style={{ backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})`, boxShadow: `0 10px 15px -3px ${themeColors.primary}30` }}
+                style={isOnline 
+                  ? { backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})`, boxShadow: `0 10px 15px -3px ${themeColors.primary}30` } 
+                  : { backgroundColor: '#94a3b8' }
+                }
               >
-                {isAnalyzing ? (
+                {!isOnline ? (
+                  <>
+                    <WifiOff size={20} />
+                    {t('error.offline')}
+                  </>
+                ) : isAnalyzing ? (
                   <>
                     <Activity className="animate-spin" size={20} />
                     در حال تحلیل هوشمند...
