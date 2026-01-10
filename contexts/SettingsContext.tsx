@@ -37,11 +37,15 @@ const translations: Record<string, Record<Language, string>> = {
   'standard': { fa: 'حد', en: 'Limit' },
   'normal': { fa: 'نرمال', en: 'Normal' },
   
-  // Connectivity
+  // Connectivity & Queue
   'status.online': { fa: 'آنلاین', en: 'Online' },
   'status.offline': { fa: 'آفلاین', en: 'Offline' },
   'error.offline': { fa: 'عدم دسترسی به اینترنت', en: 'No Internet Connection' },
   'error.offlineDesc': { fa: 'برای استفاده از قابلیت‌های هوش مصنوعی، لطفاً به اینترنت متصل شوید.', en: 'Please connect to the internet to use AI features.' },
+  'queue.pending': { fa: 'مورد در صف انتظار', en: 'items pending sync' },
+  'queue.synced': { fa: 'داده‌های صف آفلاین با موفقیت همگام‌سازی شدند.', en: 'Offline queue data synchronized successfully.' },
+  'queue.added': { fa: 'داده‌ها به صف آفلاین اضافه شدند و پس از اتصال به اینترنت ثبت خواهند شد.', en: 'Data added to offline queue and will be synced when online.' },
+  'btn.queue': { fa: 'افزودن به صف (آفلاین)', en: 'Add to Queue (Offline)' },
   
   // Exhaust Details
   'details.notFound': { fa: 'هیچ اگزوزی یافت نشد.', en: 'No exhaust found.' },

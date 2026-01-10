@@ -49,3 +49,11 @@ export interface AIAnalysisResult {
 }
 
 export type TabType = 'dashboard' | 'data-entry' | 'analysis' | 'history' | 'details';
+
+export interface QueueItem {
+  id: string;
+  exhaustId: string;
+  data: PollutantData;
+  period: string;
+  timestamp: string;
+}

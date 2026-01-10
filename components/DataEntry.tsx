@@ -1,32 +1,39 @@
 import React, { useState, useRef } from 'react';
-import { FileText, Save, RefreshCcw, PlusCircle, Settings, Factory, Calendar, Download, Upload, Database } from 'lucide-react';
+import { FileText, Save, RefreshCcw, PlusCircle, Settings, Factory, Calendar, Download, Upload, Database, WifiOff, Cloud } from 'lucide-react';
 import { Exhaust, PollutantData } from '../types';
 import { STANDARDS } from '../constants';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface DataEntryProps {
   exhausts: Exhaust[];
   onAddData: (exhaustId: string, data: PollutantData, period: string) => void;
   onAddExhaust: (name: string, location: string) => void;
   onImportData: (data: Exhaust[]) => void;
+  isOnline?: boolean;
 }
 
-export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAddExhaust, onImportData }) => {
+export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAddExhaust, onImportData, isOnline = true }) => {
   const [mode, setMode] = useState<'entry' | 'create' | 'backup'>('entry');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useSettings();
   
   // State for Data Entry
   const [exhaustId, setExhaustId] = useState('');
-  const [period, setPeriod] = useState('زمستان ۱۴۰۴');
+  
+  // Changed from single period string to separate season and year states
+  const [season, setSeason] = useState('زمستان');
+  const [year, setYear] = useState('1404');
+  
   const [formData, setFormData] = useState<Partial<PollutantData>>({});
 
   // State for New Exhaust
   const [newExhaust, setNewExhaust] = useState({ name: '', location: '' });
 
-  const periods = [
-    'زمستان ۱۴۰۴',
-    'پاییز ۱۴۰۴',
-    'تابستان ۱۴۰۴',
-    'بهار ۱۴۰۴'
+  const seasons = [
+    'بهار',
+    'تابستان',
+    'پاییز',
+    'زمستان'
   ];
 
   const handleSubmitData = () => {
@@ -40,6 +47,9 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
       PM: Number(formData.PM) || 0,
       O2: Number(formData.O2) || 0,
     };
+
+    // Combine season and year for the final period string
+    const period = `${season} ${year}`;
 
     onAddData(exhaustId, completeData, period);
     setExhaustId('');
@@ -162,17 +172,27 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
             <div className="md:col-span-1">
               <label className="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                 <Calendar size={16} />
-                دوره پایش (فصل)
+                دوره پایش (فصل و سال)
               </label>
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all hover:bg-gray-100 dark:hover:bg-slate-900"
-              >
-                {periods.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                    value={season}
+                    onChange={(e) => setSeason(e.target.value)}
+                    className="flex-[2] bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all hover:bg-gray-100 dark:hover:bg-slate-900"
+                >
+                    {seasons.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                    ))}
+                </select>
+                <input 
+                    type="number"
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    placeholder="سال"
+                    className="flex-1 min-w-[80px] bg-gray-50 dark:bg-slate-900/50 border border-gray-300 dark:border-slate-600 rounded-xl px-4 py-3.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all hover:bg-gray-100 dark:hover:bg-slate-900 text-center"
+                    dir="ltr"
+                />
+              </div>
             </div>
 
             {Object.keys(STANDARDS).map(pollutant => (
@@ -213,10 +233,23 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
             </button>
             <button
               onClick={handleSubmitData}
-              className="flex-[2] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              className={`flex-[2] text-white py-4 rounded-xl font-bold shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
+                  isOnline 
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/20' 
+                  : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 shadow-amber-500/20'
+              }`}
             >
-              <Save size={20} />
-              ذخیره اطلاعات
+              {isOnline ? (
+                  <>
+                     <Save size={20} />
+                     ذخیره اطلاعات
+                  </>
+              ) : (
+                  <>
+                     <Cloud size={20} />
+                     {t('btn.queue')}
+                  </>
+              )}
             </button>
           </div>
         </div>

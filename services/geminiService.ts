@@ -3,7 +3,7 @@ import { Exhaust } from "../types";
 import { STANDARDS } from "../constants";
 
 // Initialize carefully - if offline, we still define 'ai' but API calls will be guarded
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Chat session management
 let chatSession: Chat | null = null;

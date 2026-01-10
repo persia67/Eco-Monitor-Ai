@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info, Moon, Sun, Languages, Palette, MessageSquare, Wifi, WifiOff } from 'lucide-react';
+import { Activity, FileText, TrendingUp, Menu, Zap, BarChart3, Info, Moon, Sun, Languages, Palette, MessageSquare, Wifi, WifiOff, Database } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
 import { MeasurementHistory } from './components/HistoryLog';
 import { ExhaustDetails } from './components/ExhaustDetails';
 import { ChatBot } from './components/ChatBot';
-import { Exhaust, PollutantData, AIAnalysisResult, TabType } from './types';
+import { Exhaust, PollutantData, AIAnalysisResult, TabType, QueueItem } from './types';
 import { INITIAL_EXHAUSTS } from './constants';
 import { generateExhaustAnalysis } from './services/geminiService';
 import { useSettings, AccentColor } from './contexts/SettingsContext';
@@ -25,6 +25,16 @@ const App: React.FC = () => {
     }
   });
 
+  // Offline Queue State
+  const [offlineQueue, setOfflineQueue] = useState<QueueItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('ecomonitor_offline_queue');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -39,7 +49,12 @@ const App: React.FC = () => {
     localStorage.setItem('ecomonitor_exhausts', JSON.stringify(exhausts));
   }, [exhausts]);
 
-  // Monitor Network Status
+  // Persist queue when changed
+  useEffect(() => {
+    localStorage.setItem('ecomonitor_offline_queue', JSON.stringify(offlineQueue));
+  }, [offlineQueue]);
+
+  // Monitor Network Status and Sync
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -52,6 +67,41 @@ const App: React.FC = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Sync logic
+  useEffect(() => {
+    if (isOnline && offlineQueue.length > 0) {
+        // Sync queue to main state
+        setExhausts(prev => {
+            let nextState = [...prev];
+            offlineQueue.forEach(item => {
+                nextState = nextState.map(ex => {
+                    if (ex.id === parseInt(item.exhaustId)) {
+                        return {
+                            ...ex,
+                            data: item.data,
+                            lastCheck: item.timestamp,
+                            history: [
+                                ...ex.history, 
+                                {
+                                    period: item.period,
+                                    date: item.timestamp,
+                                    data: item.data
+                                }
+                            ]
+                        };
+                    }
+                    return ex;
+                });
+            });
+            return nextState;
+        });
+
+        // Clear queue
+        setOfflineQueue([]);
+        alert(t('queue.synced'));
+    }
+  }, [isOnline, offlineQueue, t]);
   
   // Handle Scroll Effect
   useEffect(() => {
@@ -64,17 +114,34 @@ const App: React.FC = () => {
   }, []);
 
   const handleAddData = (exhaustId: string, newData: PollutantData, period: string) => {
+    const timestamp = new Date().toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US');
+
+    if (!isOnline) {
+        // Add to offline queue
+        const queueItem: QueueItem = {
+            id: Date.now().toString(),
+            exhaustId,
+            data: newData,
+            period,
+            timestamp
+        };
+        setOfflineQueue(prev => [...prev, queueItem]);
+        alert(t('queue.added'));
+        return;
+    }
+
+    // Standard online behavior
     setExhausts(prev => prev.map(exhaust => {
       if (exhaust.id === parseInt(exhaustId)) {
         return {
           ...exhaust,
           data: newData,
-          lastCheck: new Date().toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US'),
+          lastCheck: timestamp,
           history: [
             ...exhaust.history, 
             {
                 period: period,
-                date: new Date().toLocaleDateString(language === 'fa' ? 'fa-IR' : 'en-US'),
+                date: timestamp,
                 data: newData
             }
           ]
@@ -175,7 +242,7 @@ const App: React.FC = () => {
               
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 
-                {/* Online Status Indicator */}
+                {/* Online Status Indicator & Queue Count */}
                 <div 
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-bold transition-all ${
                     isOnline 
@@ -186,6 +253,15 @@ const App: React.FC = () => {
                 >
                   {isOnline ? <Wifi size={18} /> : <WifiOff size={18} />}
                   <span className="hidden sm:inline">{isOnline ? t('status.online') : t('status.offline')}</span>
+                  
+                  {offlineQueue.length > 0 && (
+                      <div className="flex items-center gap-1 border-r border-gray-300 dark:border-gray-700 pr-2 mr-1">
+                          <Database size={14} className="text-amber-500" />
+                          <span className="text-amber-600 dark:text-amber-400 text-xs">
+                              {offlineQueue.length} {t('queue.pending')}
+                          </span>
+                      </div>
+                  )}
                 </div>
 
                 {/* Color Picker */}
@@ -283,6 +359,7 @@ const App: React.FC = () => {
               onAddData={handleAddData} 
               onAddExhaust={handleAddExhaust}
               onImportData={handleImportData}
+              isOnline={isOnline}
             />
           )}
 
