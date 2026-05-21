@@ -26,6 +26,7 @@ const translations: Record<string, Record<Language, string>> = {
   'nav.analysis': { fa: 'تحلیل هوشمند', en: 'AI Analysis' },
   'nav.history': { fa: 'روند کلی', en: 'History' },
   'nav.chat': { fa: 'گفتگوی هوشمند', en: 'AI Chat' },
+  'nav.visualizer': { fa: 'تصویرساز هوشمند', en: 'AI Visualizer' },
   'gemini.powered': { fa: 'Gemini 3 Powered', en: 'Powered by Gemini 3' },
 
   // Generic
@@ -37,15 +38,11 @@ const translations: Record<string, Record<Language, string>> = {
   'standard': { fa: 'حد', en: 'Limit' },
   'normal': { fa: 'نرمال', en: 'Normal' },
   
-  // Connectivity & Queue
+  // Connectivity
   'status.online': { fa: 'آنلاین', en: 'Online' },
   'status.offline': { fa: 'آفلاین', en: 'Offline' },
   'error.offline': { fa: 'عدم دسترسی به اینترنت', en: 'No Internet Connection' },
   'error.offlineDesc': { fa: 'برای استفاده از قابلیت‌های هوش مصنوعی، لطفاً به اینترنت متصل شوید.', en: 'Please connect to the internet to use AI features.' },
-  'queue.pending': { fa: 'مورد در صف انتظار', en: 'items pending sync' },
-  'queue.synced': { fa: 'داده‌های صف آفلاین با موفقیت همگام‌سازی شدند.', en: 'Offline queue data synchronized successfully.' },
-  'queue.added': { fa: 'داده‌ها به صف آفلاین اضافه شدند و پس از اتصال به اینترنت ثبت خواهند شد.', en: 'Data added to offline queue and will be synced when online.' },
-  'btn.queue': { fa: 'افزودن به صف (آفلاین)', en: 'Add to Queue (Offline)' },
   
   // Exhaust Details
   'details.notFound': { fa: 'هیچ اگزوزی یافت نشد.', en: 'No exhaust found.' },
@@ -64,13 +61,19 @@ const translations: Record<string, Record<Language, string>> = {
   'details.reAnalyzeBtn': { fa: 'تحلیل مجدد وضعیت', en: 'Re-analyze Status' },
   'details.getAnalysisBtn': { fa: 'دریافت تحلیل هوشمند', en: 'Get AI Analysis' },
 
-  // Chat
+  // Chat & Visualizer
   'chat.welcome': { fa: 'سلام! من دستیار هوشمند شما هستم. می‌توانید سوالات فنی خود را در مورد بویلرها، استانداردها و رفع عیب سیستم بپرسید.', en: 'Hello! I am your AI assistant. You can ask technical questions about boilers, standards, and troubleshooting.' },
   'chat.placeholder': { fa: 'سوال خود را بپرسید...', en: 'Ask your question...' },
   'chat.offlinePlaceholder': { fa: 'اتصال اینترنت برقرار نیست', en: 'No internet connection' },
   'chat.send': { fa: 'ارسال', en: 'Send' },
   'chat.clear': { fa: 'شروع مجدد', en: 'New Chat' },
-  'chat.thinking': { fa: 'در حال فکر کردن...', en: 'Thinking...' },
+  'chat.thinking': { fa: 'در حال تحلیل عمیق...', en: 'Thinking deeply...' },
+  'viz.title': { fa: 'تصویرساز صنعتی', en: 'Industrial Visualizer' },
+  'viz.subtitle': { fa: 'تولید تصاویر سه‌بعدی و دیاگرام‌های فنی با مدل Gemini 3 Pro Image', en: 'Generate 3D models and technical diagrams with Gemini 3 Pro Image' },
+  'viz.promptPlaceholder': { fa: 'توصیف تصویر مورد نظر را بنویسید (مثلاً: مدل سه بعدی مشعل بویلر با شعله آبی)...', en: 'Describe the image (e.g., 3D model of a boiler burner with blue flame)...' },
+  'viz.generate': { fa: 'تولید تصویر', en: 'Generate Image' },
+  'viz.aspectRatio': { fa: 'نسبت تصویر', en: 'Aspect Ratio' },
+  'viz.selectKey': { fa: 'انتخاب کلید API (الزامی)', en: 'Select API Key (Required)' },
 
   // Pollutants
   'pol.CO': { fa: 'مونوکسید کربن', en: 'Carbon Monoxide' },

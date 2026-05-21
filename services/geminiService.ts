@@ -2,9 +2,6 @@ import { GoogleGenAI, Chat } from "@google/genai";
 import { Exhaust } from "../types";
 import { STANDARDS } from "../constants";
 
-// Initialize carefully - if offline, we still define 'ai' but API calls will be guarded
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Chat session management
 let chatSession: Chat | null = null;
 
@@ -17,12 +14,16 @@ export const sendChatMessage = async (message: string): Promise<string> => {
     return "اتصال اینترنت برقرار نیست. لطفاً برای دریافت پاسخ هوشمند، اتصال خود را بررسی کنید.";
   }
 
+  // Use a new instance to ensure up-to-date API key
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   try {
     if (!chatSession) {
       chatSession = ai.chats.create({
         model: 'gemini-3-pro-preview',
         config: {
           systemInstruction: 'You are an intelligent assistant for an industrial environmental monitoring system called EcoMonitor. You help engineers interpret emission data (CO, NOx, SO2, PM, O2), understand ISO 14001 standards, and troubleshoot boiler efficiency issues. Your responses should be technical, concise, and helpful. Use Persian (Farsi) language. Always format your response in a way that is easy to read in a chat window.',
+          thinkingConfig: { thinkingBudget: 32768 }
         },
       });
     }
@@ -31,6 +32,9 @@ export const sendChatMessage = async (message: string): Promise<string> => {
     return response.text || "متاسفانه پاسخی دریافت نشد.";
   } catch (error) {
     console.error("Chat Error:", error);
+    if (error instanceof Error && error.message.includes("Requested entity was not found")) {
+      return "خطا در اعتبار کلید API. لطفاً مجدداً کلید خود را انتخاب کنید.";
+    }
     return "خطا در ارتباط با سرور هوشمند. لطفاً مجدداً تلاش کنید.";
   }
 };
@@ -39,6 +43,8 @@ export const generateExhaustAnalysis = async (exhaustData: Exhaust): Promise<str
   if (!navigator.onLine) {
     return "برای تحلیل هوشمند داده‌ها نیاز به اینترنت است. لطفاً اتصال خود را بررسی کرده و مجدداً تلاش کنید.";
   }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const dataDescription = Object.entries(exhaustData.data).map(([pollutant, value]) => {
     const std = STANDARDS[pollutant];
@@ -58,12 +64,11 @@ export const generateExhaustAnalysis = async (exhaustData: Exhaust): Promise<str
 
     Please provide a detailed technical report in Persian (Farsi) covering:
     1. **Overall Status**: A summary of the boiler's compliance with environmental standards.
-    2. **Problem Identification**: Identify specific pollutants that exceed or approach limits and explain the potential mechanical or chemical causes (e.g., lean fuel mixture, low combustion temperature, sulfur content).
+    2. **Problem Identification**: Identify specific pollutants that exceed or approach limits and explain the potential mechanical or chemical causes.
     3. **Actionable Recommendations**: Provide specific engineering solutions to fix the issues.
     4. **Priority**: Rank the actions from Critical to Low priority.
-    5. **Estimation**: Rough time and resource estimation for the fixes.
 
-    Format the response using clean Markdown with headers and bullet points. Use professional technical Persian terminology.
+    Format the response using clean Markdown.
   `;
 
   try {
@@ -72,9 +77,10 @@ export const generateExhaustAnalysis = async (exhaustData: Exhaust): Promise<str
       contents: prompt,
     });
     
-    return response.text || "خطا در دریافت پاسخ از هوش مصنوعی. لطفاً مجدداً تلاش کنید.";
+    return response.text || "خطا در دریافت پاسخ از هوش مصنوعی.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "خطا در برقراری ارتباط با سرور تحلیل هوشمند. لطفاً اتصال اینترنت خود را بررسی کنید.";
+    return "خطا در برقراری ارتباط با سرور تحلیل هوشمند.";
   }
 };
+

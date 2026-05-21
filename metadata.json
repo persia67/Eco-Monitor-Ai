@@ -1,5 +1,6 @@
 {
   "name": "EcoMonitor AI",
   "description": "An intelligent environmental emission monitoring system compliant with ISO standards, featuring real-time data visualization and Gemini-powered AI analysis for industrial boilers and exhaust systems.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }

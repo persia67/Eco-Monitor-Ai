@@ -85,7 +85,7 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
               {t('details.combustion')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height="100%" minWidth={0}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
                   <XAxis dataKey="name" tick={{fill: '#64748b'}} />
@@ -105,7 +105,7 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
               {t('details.oxygen')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height="100%" minWidth={0}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorO2" x1="0" y1="0" x2="0" y2="1">
@@ -130,7 +130,7 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
               {t('details.particles')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height="100%" minWidth={0}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
                   <XAxis dataKey="name" tick={{fill: '#64748b'}} />
@@ -149,7 +149,7 @@ export const MeasurementHistory: React.FC<MeasurementHistoryProps> = ({ exhausts
               {t('details.so2')}
             </h3>
             <div className="h-[300px] w-full" dir="ltr">
-              <ResponsiveContainer width="99%" height="100%">
+              <ResponsiveContainer width="99%" height="100%" minWidth={0}>
                 <AreaChart data={chartData}>
                    <defs>
                     <linearGradient id="colorSO2" x1="0" y1="0" x2="0" y2="1">

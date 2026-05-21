@@ -1,21 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { FileText, Save, RefreshCcw, PlusCircle, Settings, Factory, Calendar, Download, Upload, Database, WifiOff, Cloud } from 'lucide-react';
+import { FileText, Save, RefreshCcw, PlusCircle, Settings, Factory, Calendar, Download, Upload, Database } from 'lucide-react';
 import { Exhaust, PollutantData } from '../types';
 import { STANDARDS } from '../constants';
-import { useSettings } from '../contexts/SettingsContext';
 
 interface DataEntryProps {
   exhausts: Exhaust[];
   onAddData: (exhaustId: string, data: PollutantData, period: string) => void;
   onAddExhaust: (name: string, location: string) => void;
   onImportData: (data: Exhaust[]) => void;
-  isOnline?: boolean;
 }
 
-export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAddExhaust, onImportData, isOnline = true }) => {
+export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAddExhaust, onImportData }) => {
   const [mode, setMode] = useState<'entry' | 'create' | 'backup'>('entry');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { t } = useSettings();
   
   // State for Data Entry
   const [exhaustId, setExhaustId] = useState('');
@@ -103,10 +100,10 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-200 dark:border-slate-700/50 max-w-4xl mx-auto animate-in slide-in-from-bottom-5 duration-500 transition-colors duration-300">
+    <div className="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-4 md:p-8 shadow-2xl border border-gray-200 dark:border-slate-700/50 max-w-4xl mx-auto animate-in slide-in-from-bottom-5 duration-500 transition-colors duration-300">
       
       {/* Tab Switcher */}
-      <div className="flex flex-wrap gap-2 bg-gray-100 dark:bg-slate-900/50 p-1 rounded-xl mb-8 border border-gray-200 dark:border-slate-700">
+      <div className="flex flex-wrap gap-2 bg-gray-100 dark:bg-slate-900/50 p-1.5 rounded-xl mb-6 md:mb-8 border border-gray-200 dark:border-slate-700">
         <button 
           onClick={() => setMode('entry')}
           className={`flex-1 py-3 px-2 rounded-lg font-bold text-xs md:text-sm lg:text-base flex items-center justify-center gap-2 transition-all ${
@@ -145,16 +142,16 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
       {mode === 'entry' && (
         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700">
-            <div className="p-3 bg-blue-100 dark:bg-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400">
-              <Settings size={28} />
+            <div className="p-2.5 md:p-3 bg-blue-100 dark:bg-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400">
+              <Settings size={24} className="md:w-7 md:h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-white">ورود مقادیر آلاینده‌ها</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">انتخاب اگزوز، فصل پایش و ثبت مقادیر اندازه‌گیری شده</p>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">ورود مقادیر آلاینده‌ها</h2>
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-0.5">انتخاب اگزوز، فصل پایش و ثبت مقادیر اندازه‌گیری شده</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <div className="md:col-span-1">
               <label className="block mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">منبع انتشار (اگزوز)</label>
               <select
@@ -223,33 +220,20 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
             ))}
           </div>
 
-          <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex flex-col-reverse sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
             <button
                 onClick={() => {setExhaustId(''); setFormData({});}}
-                className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-3.5 md:py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
             >
               <RefreshCcw size={20} />
               پاک کردن
             </button>
             <button
               onClick={handleSubmitData}
-              className={`flex-[2] text-white py-4 rounded-xl font-bold shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
-                  isOnline 
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/20' 
-                  : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 shadow-amber-500/20'
-              }`}
+              className="w-full sm:flex-[2] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3.5 md:py-4 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              {isOnline ? (
-                  <>
-                     <Save size={20} />
-                     ذخیره اطلاعات
-                  </>
-              ) : (
-                  <>
-                     <Cloud size={20} />
-                     {t('btn.queue')}
-                  </>
-              )}
+              <Save size={20} />
+              ذخیره اطلاعات
             </button>
           </div>
         </div>
@@ -258,12 +242,12 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
       {mode === 'create' && (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700">
-            <div className="p-3 bg-emerald-100 dark:bg-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400">
-              <Factory size={28} />
+            <div className="p-2.5 md:p-3 bg-emerald-100 dark:bg-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400">
+              <Factory size={24} className="md:w-7 md:h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-white">افزودن اگزوز جدید</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">تعریف یک نقطه پایش جدید در سامانه</p>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">افزودن اگزوز جدید</h2>
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-0.5">تعریف یک نقطه پایش جدید در سامانه</p>
             </div>
           </div>
 
@@ -291,10 +275,10 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
             </div>
           </div>
 
-          <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex flex-col-reverse sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
             <button
               onClick={() => setNewExhaust({ name: '', location: '' })}
-              className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full sm:flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 py-3.5 md:py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
             >
               <RefreshCcw size={20} />
               انصراف
@@ -302,7 +286,7 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
             <button
               onClick={handleCreateExhaust}
               disabled={!newExhaust.name || !newExhaust.location}
-              className="flex-[2] bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              className="w-full sm:flex-[2] bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 md:py-4 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <PlusCircle size={20} />
               ایجاد اگزوز جدید
@@ -314,12 +298,12 @@ export const DataEntry: React.FC<DataEntryProps> = ({ exhausts, onAddData, onAdd
       {mode === 'backup' && (
         <div className="animate-in fade-in slide-in-from-left-4 duration-300">
            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-slate-700">
-            <div className="p-3 bg-purple-100 dark:bg-purple-500/20 rounded-xl text-purple-600 dark:text-purple-400">
-              <Database size={28} />
+            <div className="p-2.5 md:p-3 bg-purple-100 dark:bg-purple-500/20 rounded-xl text-purple-600 dark:text-purple-400">
+              <Database size={24} className="md:w-7 md:h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-white">پشتیبان‌گیری و بازیابی</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">مدیریت فایل‌های داده و انتقال اطلاعات</p>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">پشتیبان‌گیری و بازیابی</h2>
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-0.5">مدیریت فایل‌های داده و انتقال اطلاعات</p>
             </div>
           </div>
 
