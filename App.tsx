@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, FileText, TrendingUp, Zap, BarChart3, Info, Moon, Sun, Palette, MessageSquare, Wifi, WifiOff } from 'lucide-react';
+import { Activity, FileText, TrendingUp, Zap, BarChart3, Info, Moon, Sun, Palette, MessageSquare, Wifi, WifiOff, Settings } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
 import { MeasurementHistory } from './components/HistoryLog';
 import { ExhaustDetails } from './components/ExhaustDetails';
 import { ChatBot } from './components/ChatBot';
+import { LocalAiSettingsModal } from './components/LocalAiSettingsModal';
 import { Exhaust, PollutantData, AIAnalysisResult, TabType } from './types';
 import { INITIAL_EXHAUSTS } from './constants';
 import { generateExhaustAnalysis } from './services/geminiService';
@@ -13,6 +14,7 @@ import { useSettings, AccentColor } from './contexts/SettingsContext';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType | 'chat'>('dashboard');
+  const [showGlobalSettings, setShowGlobalSettings] = useState(false);
   
   // Initialize state from LocalStorage or fallback to constants
   const [exhausts, setExhausts] = useState<Exhaust[]>(() => {
@@ -32,7 +34,7 @@ const App: React.FC = () => {
   // Navigation visual state
   const [isScrolled, setIsScrolled] = useState(false);
   
-  const { theme, toggleTheme, language, toggleLanguage, t, dir, accentColor, setAccentColor, themeColors } = useSettings();
+  const { theme, toggleTheme, language, toggleLanguage, t, dir, accentColor, setAccentColor, themeColors, localAiSettings } = useSettings();
 
   // Persist data when changed
   useEffect(() => {
@@ -105,7 +107,8 @@ const App: React.FC = () => {
   };
 
   const handleAnalyze = async (exhaust: Exhaust, switchTab: boolean = true) => {
-    if (!isOnline) {
+    const canAnalyzeOffline = localAiSettings.mode === 'ollama' || localAiSettings.mode === 'huggingface';
+    if (!isOnline && !canAnalyzeOffline) {
       alert(t('error.offlineDesc'));
       return;
     }
@@ -204,6 +207,13 @@ const App: React.FC = () => {
                         <button onClick={toggleLanguage} className="p-2.5 md:p-3 rounded-xl bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 font-bold w-12 text-sm">
                             {language === 'fa' ? 'En' : 'فا'}
                         </button>
+                        <button 
+                            onClick={() => setShowGlobalSettings(true)} 
+                            className="p-2.5 md:p-3 rounded-xl bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-all text-slate-700 dark:text-slate-300"
+                            title={language === 'fa' ? 'تنظیمات هوش مصنوعی' : 'AI Settings'}
+                        >
+                            <Settings size={18} />
+                        </button>
                     </div>
                 </div>
                 
@@ -265,6 +275,12 @@ const App: React.FC = () => {
           {activeTab === 'history' && <MeasurementHistory exhausts={exhausts} />}
         </main>
       </div>
+
+      {/* Global AI Settings Modal */}
+      <LocalAiSettingsModal 
+        isOpen={showGlobalSettings} 
+        onClose={() => setShowGlobalSettings(false)} 
+      />
     </div>
   );
 };

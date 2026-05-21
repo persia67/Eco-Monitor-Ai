@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => {
       'process.env': env
     },
     server: {
-      port: 5173
+      port: 3000,
+      host: '0.0.0.0'
     }
   };
 });

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { LocalAiSettings, getLocalAiSettings, saveLocalAiSettings } from '../services/localAiService';
 
 type Theme = 'light' | 'dark';
 type Language = 'fa' | 'en';
@@ -14,6 +15,8 @@ interface SettingsContextType {
   t: (key: string) => string;
   dir: 'rtl' | 'ltr';
   themeColors: { primary: string; hover: string; light: string; text: string };
+  localAiSettings: LocalAiSettings;
+  updateLocalAiSettings: (settings: LocalAiSettings) => void;
 }
 
 const translations: Record<string, Record<Language, string>> = {
@@ -97,6 +100,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [theme, setTheme] = useState<Theme>('dark');
   const [language, setLanguage] = useState<Language>('fa');
   const [accentColor, setAccentColor] = useState<AccentColor>('blue');
+  const [localAiSettings, setLocalAiSettings] = useState<LocalAiSettings>(() => getLocalAiSettings());
+
+  const updateLocalAiSettings = (newSettings: LocalAiSettings) => {
+    setLocalAiSettings(newSettings);
+    saveLocalAiSettings(newSettings);
+  };
 
   useEffect(() => {
     // Apply Theme
@@ -147,7 +156,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setAccentColor,
       t,
       dir: language === 'fa' ? 'rtl' : 'ltr',
-      themeColors: getThemeColors()
+      themeColors: getThemeColors(),
+      localAiSettings,
+      updateLocalAiSettings
     }}>
       {children}
     </SettingsContext.Provider>

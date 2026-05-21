@@ -6,6 +6,7 @@ import { Filter, Info, MapPin, Calendar, Activity, Zap, FileText, Table, Chevron
 import { Exhaust, AIAnalysisResult } from '../types';
 import { STANDARDS } from '../constants';
 import { useSettings } from '../contexts/SettingsContext';
+import { getLocalAiSettings } from '../services/localAiService';
 
 interface ExhaustDetailsProps {
   exhausts: Exhaust[];
@@ -19,8 +20,12 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
   exhausts, aiAnalysis, isAnalyzing, onAnalyze, isOnline
 }) => {
   const [selectedExhaustId, setSelectedExhaustId] = useState<number>(exhausts[0]?.id || 1);
-  const { t, language, themeColors } = useSettings();
+  const { t, language, themeColors, localAiSettings } = useSettings();
   const selectedExhaust = exhausts.find(e => e.id === selectedExhaustId);
+  
+  const aiSettings = localAiSettings;
+  const canAnalyzeOffline = aiSettings.mode === 'ollama' || aiSettings.mode === 'huggingface';
+
 
   if (!selectedExhaust) return <div className="text-center p-10 text-slate-500">{t('details.notFound')}</div>;
 
@@ -243,15 +248,15 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
 
              <button
                 onClick={() => onAnalyze(selectedExhaust, false)}
-                disabled={isAnalyzing || !isOnline}
-                title={!isOnline ? t('error.offlineDesc') : ''}
+                disabled={isAnalyzing || (!isOnline && !canAnalyzeOffline)}
+                title={!isOnline && !canAnalyzeOffline ? t('error.offlineDesc') : 'تحلیل با استفاده از موتور افلاین'}
                 className="w-full sm:w-auto text-white py-3 px-8 rounded-xl font-bold shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-                style={isOnline 
+                style={isOnline || canAnalyzeOffline 
                   ? { backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})`, boxShadow: `0 10px 15px -3px ${themeColors.primary}30` }
                   : { backgroundColor: '#94a3b8' }
                 }
               >
-                {!isOnline ? (
+                {!isOnline && !canAnalyzeOffline ? (
                   <>
                     <WifiOff size={20} />
                     {t('error.offline')}
@@ -264,7 +269,7 @@ export const ExhaustDetails: React.FC<ExhaustDetailsProps> = ({
                 ) : (
                   <>
                     <Zap size={20} className="fill-white" />
-                    {currentAnalysis ? t('details.reAnalyzeBtn') : t('details.getAnalysisBtn')}
+                    {!isOnline ? "گزارش کارشناسی آفلاین (محلی)" : (currentAnalysis ? t('details.reAnalyzeBtn') : t('details.getAnalysisBtn'))}
                   </>
                 )}
               </button>
