@@ -3,6 +3,67 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Prevent Vite HMR client from triggering infinite page reload loops on websocket disconnection in the sandboxed preview environment.
+      (function() {
+        const OriginalWebSocket = window.WebSocket;
+        if (!OriginalWebSocket) return;
+
+        window.WebSocket = function(url, protocols) {
+          if (typeof url === 'string' && (url.includes('/vite') || url.includes('/_hmr') || url.includes('ws:'))) {
+            console.log('EcoMonitor SafeMode: Intercepted and mocked HMR WebSocket connection to prevent page reloads:', url);
+            
+            const mockSocket = {
+              url: url,
+              readyState: 1, // WebSocket.OPEN
+              bufferedAmount: 0,
+              extensions: "",
+              protocol: protocols || "",
+              binaryType: "blob",
+              send: function(data) {
+                console.log('EcoMonitor SafeMode: Send message:', data);
+              },
+              close: function() {
+                console.log('EcoMonitor SafeMode: Close socket');
+                this.readyState = 3; // WebSocket.CLOSED
+                if (typeof this.onclose === 'function') {
+                  this.onclose({ wasClean: true, code: 1000, reason: "closed" });
+                }
+              },
+              addEventListener: function(type, listener) {
+                if (type === 'open') {
+                  setTimeout(() => {
+                    if (typeof this.onopen === 'function') this.onopen();
+                    listener({ type: 'open' });
+                  }, 50);
+                }
+              },
+              removeEventListener: function(type, listener) {},
+              dispatchEvent: function(event) { return true; },
+              onopen: null,
+              onclose: null,
+              onerror: null,
+              onmessage: null
+            };
+
+            setTimeout(() => {
+              if (typeof mockSocket.onopen === 'function') {
+                mockSocket.onopen();
+              }
+            }, 10);
+
+            return mockSocket;
+          }
+          
+          return new OriginalWebSocket(url, protocols);
+        };
+        
+        window.WebSocket.CONNECTING = 0;
+        window.WebSocket.OPEN = 1;
+        window.WebSocket.CLOSING = 2;
+        window.WebSocket.CLOSED = 3;
+      })();
+    </script>
     <title>سامانه هوشمند پایش آلاینده‌ها</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
