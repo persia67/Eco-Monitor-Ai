@@ -11,6 +11,7 @@ import { Exhaust, PollutantData, AIAnalysisResult, TabType } from './types';
 import { INITIAL_EXHAUSTS } from './constants';
 import { generateExhaustAnalysis } from './services/geminiService';
 import { useSettings, AccentColor } from './contexts/SettingsContext';
+import { AppLogo } from './components/AppLogo';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType | 'chat'>('dashboard');
@@ -167,13 +168,19 @@ const App: React.FC = () => {
              />
 
             <div className="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-6">
-              <div className="text-center lg:text-right">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black mb-2 tracking-tight">
-                  {t('app.title')} <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})` }}>EcoMonitor</span>
-                </h1>
-                <p className="text-slate-600 dark:text-slate-400 font-medium text-sm md:text-lg max-w-2xl">
-                  {t('app.subtitle')}
-                </p>
+              <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-right">
+                <div className="p-3 bg-slate-100 dark:bg-slate-900/60 rounded-2xl border border-gray-200 dark:border-slate-700/50 shadow-inner flex items-center justify-center shrink-0">
+                  <AppLogo size={62} animated={true} />
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-black mb-2 tracking-tight flex flex-col sm:flex-row items-center gap-2 justify-center sm:justify-start">
+                    <span>{t('app.title')}</span>
+                    <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.hover})` }}>EcoMonitor AI</span>
+                  </h1>
+                  <p className="text-slate-600 dark:text-slate-400 font-medium text-xs md:text-sm max-w-2xl">
+                    {t('app.subtitle')}
+                  </p>
+                </div>
               </div>
               
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
