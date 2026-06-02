@@ -14,7 +14,15 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
-      hmr: false
+      hmr: false,
+      proxy: {
+        '/api/iranemp/data': {
+          target: 'https://iranemp.ir',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/iranemp\/data/, '/api/v1/monitoring/data'),
+          secure: false
+        }
+      }
     }
   };
 });
