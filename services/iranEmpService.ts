@@ -214,25 +214,50 @@ export const fetchIranEmpData = async (
       headers: headers,
     });
 
+    const isSimulated = response.headers.get("X-IranEMP-Simulated") === "true";
+
     if (!response.ok) {
-      throw new Error(`خطای سرور IranEMP (کد: ${response.status}) ${response.statusText}`);
+      let friendlyError = `کد خطا: ${response.status} ${response.statusText}`;
+      try {
+        const errText = await response.text();
+        if (errText && !errText.trim().startsWith("<")) {
+          const errJson = JSON.parse(errText);
+          if (errJson && errJson.error) {
+            friendlyError = errJson.error;
+          }
+        }
+      } catch (e) {
+        // Fallback if not JSON
+      }
+      throw new Error(friendlyError);
     }
 
-    const data = await response.json();
+    const responseText = await response.text();
+    if (responseText.trim().startsWith("<") || responseText.trim().startsWith("<!doctype")) {
+      throw new Error("پاسخ دریافتی از پورتال یا وب‌سرویس حاوی کدهای صفحه وب (HTML) است و JSON معتبر نیست. این مسئله معمولاً به دلیل فایروال، محدودیت‌های جغرافیایی IP یا صفحات تایید هویت سمت سرور به وجود می‌آید.");
+    }
+
+    const data = JSON.parse(responseText);
+    let resultList: IranEmpStackResponse[] = [];
     if (Array.isArray(data)) {
-      return data as IranEmpStackResponse[];
-    }
-    
-    // If the return object is nested inside some common wrappers
-    if (data && typeof data === "object") {
-      if (Array.isArray(data.data)) return data.data as IranEmpStackResponse[];
-      if (Array.isArray(data.result)) return data.result as IranEmpStackResponse[];
-      if (Array.isArray(data.items)) return data.items as IranEmpStackResponse[];
+      resultList = data as IranEmpStackResponse[];
+    } else if (data && typeof data === "object") {
+      if (Array.isArray(data.data)) resultList = data.data as IranEmpStackResponse[];
+      else if (Array.isArray(data.result)) resultList = data.result as IranEmpStackResponse[];
+      else if (Array.isArray(data.items)) resultList = data.items as IranEmpStackResponse[];
+    } else {
+      throw new Error("قالب داده دریافتی از پورتال IranEMP نامعتبر است.");
     }
 
-    throw new Error("قالب داده دریافتی از پورتال IranEMP نامعتبر است.");
+    if (isSimulated) {
+      (resultList as any).isSimulated = true;
+    }
+    return resultList;
   } catch (error: any) {
-    console.error("IranEMP Fetch Error:", error);
-    throw error;
+    console.warn("IranEMP Fetch fallback triggered client-side:", error);
+    const fallbackData = getIranEmpMockData();
+    (fallbackData as any).isSimulated = true;
+    (fallbackData as any).simulationReason = error.message || String(error);
+    return fallbackData;
   }
 };

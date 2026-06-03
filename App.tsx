@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, FileText, TrendingUp, Zap, BarChart3, Info, Moon, Sun, Palette, MessageSquare, Wifi, WifiOff, Settings } from 'lucide-react';
+import { Activity, FileText, TrendingUp, Zap, BarChart3, Info, Moon, Sun, Palette, MessageSquare, Wifi, WifiOff, Settings, Cpu } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { DataEntry } from './components/DataEntry';
 import { AnalysisResult } from './components/AnalysisResult';
@@ -31,6 +31,10 @@ const App: React.FC = () => {
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  // Real-time AI filtering states
+  const [filteredExhausts, setFilteredExhausts] = useState<Exhaust[] | null>(null);
+  const [aiFilterExplanation, setAiFilterExplanation] = useState<string | null>(null);
   
   // Navigation visual state
   const [isScrolled, setIsScrolled] = useState(false);
@@ -264,22 +268,62 @@ const App: React.FC = () => {
           ))}
         </nav>
 
+        {/* Dynamic AI Filter Badge banner */}
+        {filteredExhausts !== null && (
+          <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in slide-in-from-top-3 duration-300">
+            <div className="flex items-start gap-3">
+              <div className="bg-indigo-600 text-white p-2.5 rounded-xl shrink-0 flex items-center justify-center">
+                <Cpu size={20} className="animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-black text-indigo-700 dark:text-indigo-400">فیلتر استخراج هوشمند فعال است</span>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                  برنامه در حال نمایش {filteredExhausts.length} دودکش منتخب بر اساس فیلتر استخراج هوش مصنوعی است. کلینیک تحلیل، نمودارها و شاخص‌های برنامه منطبق بر این فیلتر تغییر کرده‌اند.
+                </p>
+                {aiFilterExplanation && (
+                  <div className="text-[11px] bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/50 p-3 rounded-xl mt-2 text-slate-700 dark:text-slate-300 max-h-[140px] overflow-y-auto leading-relaxed custom-scrollbar">
+                    {aiFilterExplanation}
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setFilteredExhausts(null);
+                setAiFilterExplanation(null);
+              }}
+              className="text-xs font-bold text-red-600 dark:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-950/20 px-4 py-2 border border-red-200 dark:border-rose-800 rounded-xl whitespace-nowrap"
+            >
+              حذف فیلتر هوشمند
+            </button>
+          </div>
+        )}
+
         {/* Main Content Area */}
         <main className="min-h-[500px]">
           {activeTab === 'dashboard' && (
-            <Dashboard exhausts={exhausts} onAnalyze={(e) => handleAnalyze(e, true)} isAnalyzing={isAnalyzing} isOnline={isOnline} />
+            <Dashboard exhausts={filteredExhausts || exhausts} onAnalyze={(e) => handleAnalyze(e, true)} isAnalyzing={isAnalyzing} isOnline={isOnline} />
           )}
           {activeTab === 'details' && (
-            <ExhaustDetails exhausts={exhausts} aiAnalysis={aiAnalysis} isAnalyzing={isAnalyzing} onAnalyze={handleAnalyze} isOnline={isOnline} />
+            <ExhaustDetails exhausts={filteredExhausts || exhausts} aiAnalysis={aiAnalysis} isAnalyzing={isAnalyzing} onAnalyze={handleAnalyze} isOnline={isOnline} />
           )}
           {activeTab === 'data-entry' && (
-            <DataEntry exhausts={exhausts} onAddData={handleAddData} onAddExhaust={handleAddExhaust} onImportData={handleImportData} />
+            <DataEntry 
+              exhausts={exhausts} 
+              onAddData={handleAddData} 
+              onAddExhaust={handleAddExhaust} 
+              onImportData={handleImportData}
+              filteredExhausts={filteredExhausts}
+              onSetFilteredExhausts={setFilteredExhausts}
+              aiFilterExplanation={aiFilterExplanation}
+              onSetAiFilterExplanation={setAiFilterExplanation}
+            />
           )}
           {activeTab === 'analysis' && (
-            <AnalysisResult analysis={aiAnalysis} exhausts={exhausts} onBack={() => setActiveTab('dashboard')} />
+            <AnalysisResult analysis={aiAnalysis} exhausts={filteredExhausts || exhausts} onBack={() => setActiveTab('dashboard')} />
           )}
           {activeTab === 'chat' && <ChatBot isOnline={isOnline} />}
-          {activeTab === 'history' && <MeasurementHistory exhausts={exhausts} />}
+          {activeTab === 'history' && <MeasurementHistory exhausts={filteredExhausts || exhausts} />}
         </main>
       </div>
 
