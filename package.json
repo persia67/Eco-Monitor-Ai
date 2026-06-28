@@ -3,13 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "main": "electron/main.js",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "tsc && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit",
-    "electron:start": "electron electron/main.js",
+    "electron:start": "electron electron/main.cjs",
     "electron:build": "electron-builder",
     "android:build": "npx cap sync && cd android && ./gradlew assembleDebug"
   },
