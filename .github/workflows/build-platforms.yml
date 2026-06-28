@@ -11,8 +11,65 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build & Package Installers
+  build-windows:
+    name: Build Windows Desktop Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Compile and Build Web Assets
+        run: npm run build
+
+      - name: Package Windows Desktop Installer
+        run: npx electron-builder build --win --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Organize Compiled Packages
+        shell: bash
+        run: |
+          mkdir -p build-outputs
+          if [ -d "dist-electron" ]; then
+            find dist-electron -maxdepth 1 -name "*.exe" -exec cp {} build-outputs/ \; || true
+          fi
+
+      - name: Upload Windows Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoMonitor-Windows-Installer
+          path: build-outputs/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Create or Update GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build-outputs/*.exe
+          draft: false
+          prerelease: false
+          body: |
+            ## 🚀 نسخه جدید پلتفرم EcoMonitor AI منتشر شد
+            
+            تغییرات اخیر با موفقیت اعمال شده و خروجی‌های معتبر دسکتاپ و موبایل ساخته شدند.
+            
+            * **نسخه ویندوز (Windows Installer)**: فایل `.exe` جهت نصب روی سیستم‌عامل ویندوز.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    name: Build Android Mobile Package
     runs-on: ubuntu-latest
 
     steps:
@@ -31,14 +88,6 @@ jobs:
       - name: Compile and Build Web Assets
         run: npm run build
 
-      # --- DESKTOP WINDOWS COMPILATION (via Electron Builder on Linux) ---
-      - name: Package Windows Desktop Installer
-        run: |
-          npx electron-builder build --win --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # --- MOBILE ANDROID COMPILATION (via Capacitor & Gradle) ---
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -50,31 +99,19 @@ jobs:
 
       - name: Generate Capacitor Android App
         run: |
-          # Dynamically add the Android platform directory
-          npx cap add android
-          # Sync Web code (dist/) and settings to Android native directory
+          npx cap add android || true
           npx cap sync android
 
       - name: Build Android Packages (APK)
         run: |
           cd android
           chmod +x gradlew
-          # Build standard test debug APK
           ./gradlew assembleDebug
-          # Build production release APK (unsigned)
           ./gradlew assembleRelease
 
-      # --- ARTIFACT MANAGEMENT & PUBLISHING ---
       - name: Organize Compiled Packages
         run: |
           mkdir -p build-outputs
-          
-          # 1. Capture Windows Executables
-          if [ -d "dist-electron" ]; then
-            find dist-electron -maxdepth 1 -name "*.exe" -exec cp {} build-outputs/ \; || true
-          fi
-          
-          # 2. Capture Android APKs
           if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
             cp android/app/build/outputs/apk/debug/app-debug.apk build-outputs/EcoMonitor-Android-Debug.apk
           fi
@@ -82,29 +119,26 @@ jobs:
             cp android/app/build/outputs/apk/release/app-release-unsigned.apk build-outputs/EcoMonitor-Android-Release-Unsigned.apk
           fi
 
-      - name: Upload Installers as GitHub Actions Artifacts
+      - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EcoMonitor-Installers
+          name: EcoMonitor-Android-Apk
           path: build-outputs/*
           if-no-files-found: error
           retention-days: 14
 
-      - name: Create GitHub Release and Upload Assets
+      - name: Create or Update GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            build-outputs/*.exe
-            build-outputs/*.apk
+          files: build-outputs/*.apk
           draft: false
           prerelease: false
           body: |
             ## 🚀 نسخه جدید پلتفرم EcoMonitor AI منتشر شد
             
-            تغییرات اخیر با موفقیت اعمال شده و خروجی‌های معتبر دسکتاپ و موبایل ساخته شدند:
+            تغییرات اخیر با موفقیت اعمال شده و خروجی‌های معتبر دسکتاپ و موبایل ساخته شدند.
             
-            * **نسخه ویندوز (Windows Installer)**: فایل `.exe` جهت نصب روی سیستم‌عامل ویندوز.
             * **نسخه اندروید (Android Mobile)**: فایل `.apk` جهت نصب روی گوشی‌ها و تبلت‌های هوشمند اندرویدی کارگاه و اتاق کنترل.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
