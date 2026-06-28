@@ -85,6 +85,11 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Regenerate Gradle Wrapper
+        run: |
+          cd android
+          gradle wrapper --gradle-version 8.14.3
+
       - name: Build Android Packages (APK)
         run: |
           cd android
