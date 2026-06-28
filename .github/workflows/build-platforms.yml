@@ -40,9 +40,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p build-outputs
-          if [ -d "dist-electron" ]; then
-            find dist-electron -maxdepth 1 -name "*.exe" -exec cp {} build-outputs/ \; || true
-          fi
+          cp dist-electron/*.exe build-outputs/ 2>/dev/null || true
 
       - name: Upload Windows Installer Artifact
         uses: actions/upload-artifact@v4
@@ -51,22 +49,6 @@ jobs:
           path: build-outputs/*
           if-no-files-found: error
           retention-days: 14
-
-      - name: Create or Update GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: build-outputs/*.exe
-          draft: false
-          prerelease: false
-          body: |
-            ## 🚀 نسخه جدید پلتفرم EcoMonitor AI منتشر شد
-            
-            تغییرات اخیر با موفقیت اعمال شده و خروجی‌های معتبر دسکتاپ و موبایل ساخته شدند.
-            
-            * **نسخه ویندوز (Windows Installer)**: فایل `.exe` جهت نصب روی سیستم‌عامل ویندوز.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-android:
     name: Build Android Mobile Package
@@ -99,9 +81,8 @@ jobs:
 
       - name: Generate Capacitor Android App
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          rm -rf android
+          npx cap add android
           npx cap sync android
 
       - name: Build Android Packages (APK)
@@ -129,18 +110,46 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  release:
+    name: Create & Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-android]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+
+    steps:
+      - name: Create build-outputs Directory
+        run: mkdir -p build-outputs
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: EcoMonitor-Windows-Installer
+          path: build-outputs
+
+      - name: Download Android Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: EcoMonitor-Android-Apk
+          path: build-outputs
+
+      - name: Display Downloaded Files
+        run: ls -la build-outputs
+
       - name: Create or Update GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: build-outputs/*.apk
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
+          files: |
+            build-outputs/*.exe
+            build-outputs/*.apk
           draft: false
-          prerelease: false
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           body: |
             ## 🚀 نسخه جدید پلتفرم EcoMonitor AI منتشر شد
             
-            تغییرات اخیر با موفقیت اعمال شده و خروجی‌های معتبر دسکتاپ و موبایل ساخته شدند.
+            آخرین تغییرات برنامه با موفقیت کامپایل و آماده‌سازی شدند. از بخش زیر می‌توانید خروجی‌های معتبر دسکتاپ و موبایل را به صورت مستقیم دانلود کنید:
             
-            * **نسخه اندروید (Android Mobile)**: فایل `.apk` جهت نصب روی گوشی‌ها و تبلت‌های هوشمند اندرویدی کارگاه و اتاق کنترل.
+            * **💻 نسخه دسکتاپ ویندوز (Windows Installer)**: فایل نصب `.exe` جهت رصد و مانیتورینگ روی کامپیوترها و ویندوز کارخانه.
+            * **📱 نسخه اندروید موبایل (Android APK)**: فایل `.apk` جهت نصب روی گوشی‌ها و تبلت‌های هوشمند اندرویدی واحد کنترل.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
