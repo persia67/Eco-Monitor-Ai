@@ -3,11 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "tsc && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "electron:start": "electron electron/main.js",
+    "electron:build": "electron-builder",
+    "android:build": "npx cap sync && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
@@ -18,17 +22,47 @@
     "recharts": "^3.6.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.17",
+    "electron": "^42.5.0",
+    "electron-builder": "^26.15.3",
     "esbuild": "^0.28.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.22.4",
     "typescript": "^5.7.3",
     "vite": "^7.3.1"
+  },
+  "build": {
+    "appId": "com.ecomonitor.app",
+    "productName": "EcoMonitor AI",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "EcoMonitor AI"
+    }
   }
 }
